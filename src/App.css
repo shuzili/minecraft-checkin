@@ -1,0 +1,456 @@
+/* 导入VT323像素字体 */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* 我的世界主题颜色 */
+:root {
+  --minecraft-grass: #5d8c37;
+  --minecraft-dirt: #8b7355;
+  --minecraft-stone: #7a7a7a;
+  --minecraft-diamond: #00aaaa;
+  --minecraft-gold: #ffcc00;
+  --minecraft-iron: #e6e6e6;
+  --minecraft-lava: #ff4400;
+  --minecraft-water: #00aaaa;
+  --minecraft-wood: #8b4513;
+  --minecraft-leaves: #228b22;
+  --minecraft-emerald: #00ff00;
+  --minecraft-redstone: #ff0000;
+  --minecraft-lapis: #0000ff;
+  --minecraft-obsidian: #2d004d;
+  --minecraft-sand: #f4e4c1;
+}
+
+/* 像素字体 */
+.font-pixel {
+  font-family: 'VT323', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* 我的世界风格背景 */
+.minecraft-bg {
+  background-color: #1a1a2e;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect fill='%235d8c37' width='64' height='64'/%3E%3Crect fill='%2370a845' width='64' height='16'/%3E%3Crect fill='%234a3728' width='64' height='8' y='56'/%3E%3Crect fill='%235d8c37' width='8' height='8' x='8' y='24'/%3E%3Crect fill='%2370a845' width='8' height='8' x='16' y='24'/%3E%3Crect fill='%235d8c37' width='8' height='8' x='32' y='32'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  min-height: 100vh;
+}
+
+/* 头部样式 */
+.minecraft-header {
+  background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+  border-bottom: 4px solid var(--minecraft-wood);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* 底部样式 */
+.minecraft-footer {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 100%);
+  border-top: 4px solid var(--minecraft-stone);
+}
+
+/* 面板样式 */
+.minecraft-panel {
+  background: rgba(45, 45, 68, 0.95);
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* 卡片样式 */
+.minecraft-card {
+  background: rgba(45, 45, 68, 0.9);
+  border-radius: 8px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.minecraft-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 按钮样式 */
+.minecraft-btn {
+  font-family: 'VT323', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  transition: all 0.1s ease;
+  text-transform: none;
+}
+
+.minecraft-btn:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 0 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.minecraft-btn:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 输入框样式 */
+.minecraft-input {
+  font-family: 'VT323', monospace;
+  font-size: 1.1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--minecraft-stone);
+  border-radius: 6px;
+  color: white;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.minecraft-input:focus {
+  border-color: var(--minecraft-diamond);
+  outline: none;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(0, 170, 170, 0.3);
+}
+
+.minecraft-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* 标签页样式 */
+[data-state="active"] {
+  position: relative;
+}
+
+[data-state="active"]::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid currentColor;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--minecraft-stone);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--minecraft-iron);
+}
+
+/* 颜色工具类 */
+.text-minecraft-grass {
+  color: var(--minecraft-grass);
+}
+
+.text-minecraft-dirt {
+  color: var(--minecraft-dirt);
+}
+
+.text-minecraft-stone {
+  color: var(--minecraft-stone);
+}
+
+.text-minecraft-diamond {
+  color: var(--minecraft-diamond);
+}
+
+.text-minecraft-gold {
+  color: var(--minecraft-gold);
+}
+
+.text-minecraft-iron {
+  color: var(--minecraft-iron);
+}
+
+.text-minecraft-lava {
+  color: var(--minecraft-lava);
+}
+
+.text-minecraft-water {
+  color: var(--minecraft-water);
+}
+
+.text-minecraft-wood {
+  color: var(--minecraft-wood);
+}
+
+.text-minecraft-emerald {
+  color: var(--minecraft-emerald);
+}
+
+.bg-minecraft-grass {
+  background-color: var(--minecraft-grass);
+}
+
+.bg-minecraft-dirt {
+  background-color: var(--minecraft-dirt);
+}
+
+.bg-minecraft-stone {
+  background-color: var(--minecraft-stone);
+}
+
+.bg-minecraft-diamond {
+  background-color: var(--minecraft-diamond);
+}
+
+.bg-minecraft-gold {
+  background-color: var(--minecraft-gold);
+}
+
+.bg-minecraft-iron {
+  background-color: var(--minecraft-iron);
+}
+
+.bg-minecraft-lava {
+  background-color: var(--minecraft-lava);
+}
+
+.bg-minecraft-water {
+  background-color: var(--minecraft-water);
+}
+
+.bg-minecraft-wood {
+  background-color: var(--minecraft-wood);
+}
+
+.bg-minecraft-emerald {
+  background-color: var(--minecraft-emerald);
+}
+
+.border-minecraft-grass {
+  border-color: var(--minecraft-grass);
+}
+
+.border-minecraft-dirt {
+  border-color: var(--minecraft-dirt);
+}
+
+.border-minecraft-stone {
+  border-color: var(--minecraft-stone);
+}
+
+.border-minecraft-diamond {
+  border-color: var(--minecraft-diamond);
+}
+
+.border-minecraft-gold {
+  border-color: var(--minecraft-gold);
+}
+
+.border-minecraft-iron {
+  border-color: var(--minecraft-iron);
+}
+
+.border-minecraft-lava {
+  border-color: var(--minecraft-lava);
+}
+
+.border-minecraft-wood {
+  border-color: var(--minecraft-wood);
+}
+
+/* 动画 */
+@keyframes pixel-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-pixel-bounce {
+  animation: pixel-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes pixel-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pixel-pulse {
+  animation: pixel-pulse 1s ease-in-out infinite;
+}
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+  .font-pixel {
+    font-size: 0.9rem;
+  }
+  
+  .minecraft-btn {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .minecraft-input {
+    font-size: 1rem;
+  }
+  
+  /* 移动端底部导航 */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+    border-top: 4px solid var(--minecraft-wood);
+    padding: 0.5rem;
+  }
+  
+  .mobile-nav button {
+    min-height: 56px;
+    touch-action: manipulation;
+  }
+  
+  /* 确保内容不被底部导航遮挡 */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* 底部导航栏样式 */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+  border-top: 4px solid var(--minecraft-wood);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-bottom-nav button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 安全区域适配 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe-area {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* 对话框样式覆盖 */
+[role="dialog"] {
+  background: rgba(45, 45, 68, 0.98) !important;
+  border: 4px solid var(--minecraft-wood) !important;
+  border-radius: 8px !important;
+}
+
+[role="dialog"] > div {
+  background: transparent !important;
+}
+
+/* 下拉菜单样式 */
+[role="listbox"] {
+  background: rgba(45, 45, 68, 0.98) !important;
+  border: 2px solid var(--minecraft-stone) !important;
+  border-radius: 6px !important;
+}
+
+[role="option"] {
+  font-family: 'VT323', monospace !important;
+  font-size: 1.1rem !important;
+}
+
+[role="option"]:hover {
+  background: rgba(0, 170, 170, 0.2) !important;
+}
+
+[role="option"][data-state="checked"] {
+  background: rgba(0, 170, 170, 0.3) !important;
+}
+
+/* 选择器触发器样式 */
+[role="combobox"] {
+  font-family: 'VT323', monospace !important;
+  font-size: 1.1rem !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 3px solid var(--minecraft-stone) !important;
+  border-radius: 6px !important;
+  color: white !important;
+}
+
+[role="combobox"]:focus {
+  border-color: var(--minecraft-diamond) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(0, 170, 170, 0.3) !important;
+}
+
+/* 标签页列表样式 */
+[role="tablist"] {
+  background: rgba(45, 45, 68, 0.9) !important;
+}
+
+[role="tab"] {
+  font-family: 'VT323', monospace !important;
+  font-size: 0.9rem !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.2s ease !important;
+}
+
+[role="tab"][data-state="active"] {
+  color: white !important;
+}
+
+[role="tab"]:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 卡片内容样式 */
+[data-slot="card-content"] {
+  color: white;
+}
+
+/* 按钮变体样式 */
+button[data-variant="ghost"] {
+  color: white;
+}
+
+button[data-variant="ghost"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+button[data-variant="outline"] {
+  border-color: var(--minecraft-stone);
+  color: white;
+}
+
+button[data-variant="outline"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

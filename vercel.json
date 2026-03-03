@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm install typescript && npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite"

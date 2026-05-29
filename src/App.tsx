@@ -1,38 +1,49 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { UserManager } from '@/components/UserManager';
 import { ProjectManager } from '@/components/ProjectManager';
 import { CheckInPanel } from '@/components/CheckInPanel';
 import { ReviveCardSystem } from '@/components/ReviveCardSystem';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Shop } from '@/components/Shop';
-import { PunishmentSystem } from '@/components/PunishmentSystem';
+import { RewardPunishmentSystem } from '@/components/RewardPunishmentSystem';
 import { DataManager } from '@/components/DataManager';
 import { CheckInHistory } from '@/components/CheckInHistory';
+import { AchievementSystem } from '@/components/AchievementSystem';
+import { DailyChallenges } from '@/components/DailyChallenges';
+import { GameMode } from '@/components/GameMode';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useSound } from '@/hooks/useSound';
-import { 
-  Users, 
-  Settings, 
-  CheckCircle, 
-  Heart, 
-  Trophy, 
-  ShoppingCart, 
+import {
+  Users,
+  Settings,
+  CheckCircle,
+  Heart,
+  Trophy,
+  ShoppingCart,
   AlertTriangle,
   Volume2,
   VolumeX,
   Pickaxe,
   Database,
   Menu,
-  Calendar
+  Calendar,
+  Award,
+  Gift,
+  Eye,
+  UserPlus,
+  PlayCircle,
+  Coins,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import './App.css';
 
-type TabType = 'checkin' | 'users' | 'projects' | 'revive' | 'leaderboard' | 'shop' | 'punishment' | 'data' | 'history';
+type TabType = 'checkin' | 'users' | 'projects' | 'revive' | 'leaderboard' | 'shop' | 'reward-punishment' | 'data' | 'history' | 'achievements' | 'challenges';
+type ExtendedTabType = TabType | 'game';
 
 interface NavItem {
-  id: TabType;
+  id: ExtendedTabType;
   label: string;
   icon: React.ElementType;
   color: string;
@@ -40,18 +51,24 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { id: 'game', label: '闯关', icon: Pickaxe, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-lava' },
   { id: 'checkin', label: '打卡', icon: CheckCircle, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-grass' },
   { id: 'users', label: '用户', icon: Users, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-diamond' },
   { id: 'projects', label: '项目', icon: Settings, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-gold' },
   { id: 'revive', label: '复活卡', icon: Heart, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-diamond' },
   { id: 'leaderboard', label: '排行', icon: Trophy, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-gold' },
   { id: 'shop', label: '商城', icon: ShoppingCart, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-emerald' },
-  { id: 'punishment', label: '惩罚', icon: AlertTriangle, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-lava' },
+  { id: 'achievements', label: '成就', icon: Award, color: 'text-minecraft-stone', activeColor: 'bg-purple-600' },
+  { id: 'challenges', label: '挑战', icon: Gift, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-emerald' },
+  { id: 'reward-punishment', label: '奖惩', icon: AlertTriangle, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-lava' },
   { id: 'history', label: '历史', icon: Calendar, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-diamond' },
   { id: 'data', label: '数据', icon: Database, color: 'text-minecraft-stone', activeColor: 'bg-minecraft-wood' },
 ];
 
 function App() {
+  const params = new URLSearchParams(window.location.search);
+  const showPreview = params.get('view') === 'preview';
+
   const {
     state,
     isLoaded,
@@ -61,20 +78,27 @@ function App() {
     deleteProject,
     checkIn,
     useReviveCard,
-    exchangeReviveCard,
     addShopItem,
     deleteShopItem,
     redeemItem,
-    addPunishmentRule,
-    deletePunishmentRule,
-    applyPunishment,
-    setReviveCardExchangeRate,
+    applyRewardPunishment,
+    deleteRewardPunishmentRecord,
+    resetDailyScores,
     importState,
     getBackupList,
     createBackup,
     restoreBackup,
     deleteBackup,
-    deleteCheckInRecord
+    deleteCheckInRecord,
+    checkInWithDate,
+    addRewardPunishmentReason,
+    deleteRewardPunishmentReason,
+    updateRewardPunishmentReasonLastUsed,
+    calculateStreakRewards,
+    startLevel,
+    finishLevel,
+    failLevel,
+    saveCheckpoint
   } = useLocalStorage();
 
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -82,14 +106,15 @@ function App() {
     return saved !== null ? saved === 'true' : true;
   });
   const { play } = useSound(soundEnabled);
-  const [activeTab, setActiveTab] = useState<TabType>('checkin');
+  const [activeTab, setActiveTab] = useState<ExtendedTabType>('game');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isBattleLocked, setIsBattleLocked] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('soundEnabled', String(soundEnabled));
   }, [soundEnabled]);
 
-  // 每天重置今日积分
+  // 姣忓ぉ閲嶇疆浠婃棩绉垎
   useEffect(() => {
     if (!isLoaded) return;
     
@@ -98,9 +123,7 @@ function App() {
       const today = new Date().toISOString().split('T')[0];
       
       if (lastReset !== today) {
-        state.users.forEach(user => {
-          user.todayScore = 0;
-        });
+        resetDailyScores();
         localStorage.setItem('last-daily-reset', today);
       }
     };
@@ -109,16 +132,60 @@ function App() {
     const interval = setInterval(checkAndResetDaily, 60000);
     
     return () => clearInterval(interval);
-  }, [isLoaded, state.users]);
+  }, [isLoaded, resetDailyScores]);
 
   const toggleSound = () => {
     setSoundEnabled(!soundEnabled);
   };
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = (tab: ExtendedTabType) => {
+    if (isBattleLocked && tab !== 'game') {
+      window.alert('关卡进行中，请先退出当前闯关。');
+      return;
+    }
     setActiveTab(tab);
     play('click');
     setMenuOpen(false);
+  };
+
+  const createPreviewUsers = () => {
+    if (state.users.length > 0) return;
+    addUser('Alex', '');
+    addUser('Steve', '');
+    addUser('Ender', '');
+    play('success');
+  };
+
+  const runPreviewCheckIn = () => {
+    const userId = state.users[0]?.id;
+    const projectId = state.projects[0]?.id;
+    if (!userId || !projectId) {
+      window.alert('璇峰厛鍒涘缓婕旂ず鐢ㄦ埛');
+      return;
+    }
+    checkIn(userId, projectId);
+    play('checkIn');
+  };
+
+  const runPreviewReward = () => {
+    const userId = state.users[0]?.id;
+    if (!userId) {
+      window.alert('璇峰厛鍒涘缓婕旂ず鐢ㄦ埛');
+      return;
+    }
+    applyRewardPunishment(userId, '娴嬭瘯濂栧姳', 'reward', 20, '棰勮妯″紡鍙戞斁');
+    play('success');
+  };
+
+  const runPreviewRedeem = () => {
+    const userId = state.users[0]?.id;
+    const itemId = state.shopItems[0]?.id;
+    if (!userId || !itemId) {
+      window.alert('缺少用户或商品数据');
+      return;
+    }
+    redeemItem(userId, itemId, 1);
+    play('coin');
   };
 
   if (!isLoaded) {
@@ -126,7 +193,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-minecraft-dirt">
         <div className="text-center">
           <Pickaxe className="w-16 h-16 mx-auto text-minecraft-gold animate-bounce mb-4" />
-          <p className="font-pixel text-2xl text-minecraft-gold">加载中...</p>
+          <p className="font-pixel text-2xl text-minecraft-gold">鍔犺浇涓?..</p>
         </div>
       </div>
     );
@@ -134,6 +201,19 @@ function App() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'game':
+        return (
+          <GameMode
+            users={state.users}
+            gameState={state.gameState}
+            soundEnabled={soundEnabled}
+            onStartLevel={startLevel}
+            onFinishLevel={finishLevel}
+            onFailLevel={failLevel}
+            onSaveCheckpoint={saveCheckpoint}
+            onBattleLockChange={setIsBattleLocked}
+          />
+        );
       case 'checkin':
         return (
           <CheckInPanel
@@ -141,6 +221,7 @@ function App() {
             projects={state.projects}
             instances={state.instances}
             onCheckIn={checkIn}
+            onCheckInWithDate={checkInWithDate}
             onUseReviveCard={useReviveCard}
           />
         );
@@ -150,6 +231,7 @@ function App() {
             users={state.users}
             onAddUser={addUser}
             onDeleteUser={deleteUser}
+            onCalculateStreakRewards={calculateStreakRewards}
           />
         );
       case 'projects':
@@ -164,13 +246,13 @@ function App() {
         return (
           <ReviveCardSystem
             users={state.users}
-            exchangeRate={state.reviveCardExchangeRate}
-            onExchangeReviveCard={exchangeReviveCard}
-            onSetExchangeRate={setReviveCardExchangeRate}
+            instances={state.instances}
+            projects={state.projects}
+            onUseReviveCard={useReviveCard}
           />
         );
       case 'leaderboard':
-        return <Leaderboard users={state.users} />;
+        return <Leaderboard users={state.users} instances={state.instances} projects={state.projects} />;
       case 'shop':
         return (
           <Shop
@@ -182,15 +264,35 @@ function App() {
             onRedeemItem={redeemItem}
           />
         );
-      case 'punishment':
+      case 'achievements':
         return (
-          <PunishmentSystem
+          <AchievementSystem
+            achievements={state.achievements}
+            userAchievements={state.userAchievements}
+            userLevels={state.userLevels}
+            levelConfigs={state.levelConfigs}
+            users={state.users.map(u => ({ id: u.id, name: u.name }))}
+          />
+        );
+      case 'challenges':
+        return (
+          <DailyChallenges
+            challenges={state.dailyChallenges}
+            userChallengeProgress={state.userChallengeProgress}
             users={state.users}
-            punishmentRules={state.punishmentRules}
-            punishmentRecords={state.punishmentRecords}
-            onAddPunishmentRule={addPunishmentRule}
-            onDeletePunishmentRule={deletePunishmentRule}
-            onApplyPunishment={applyPunishment}
+          />
+        );
+      case 'reward-punishment':
+        return (
+          <RewardPunishmentSystem
+            users={state.users}
+            rewardPunishmentRecords={state.rewardPunishmentRecords}
+            rewardPunishmentReasons={state.rewardPunishmentReasons}
+            onApplyRewardPunishment={applyRewardPunishment}
+            onDeleteRewardPunishmentRecord={deleteRewardPunishmentRecord}
+            onAddRewardPunishmentReason={addRewardPunishmentReason}
+            onDeleteRewardPunishmentReason={deleteRewardPunishmentReason}
+            onUpdateRewardPunishmentReasonLastUsed={updateRewardPunishmentReasonLastUsed}
           />
         );
       case 'history':
@@ -217,10 +319,11 @@ function App() {
   };
 
   const currentNavItem = navItems.find(item => item.id === activeTab);
+  const previewTabs: ExtendedTabType[] = ['game', 'checkin', 'users', 'projects', 'revive', 'shop', 'leaderboard', 'achievements', 'challenges', 'reward-punishment', 'history', 'data'];
 
   return (
     <div className="min-h-screen minecraft-bg flex flex-col">
-      {/* 头部 */}
+      {/* 澶撮儴 */}
       <header className="minecraft-header sticky top-0 z-50 shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -244,7 +347,7 @@ function App() {
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </Button>
               
-              {/* 移动端菜单按钮 */}
+              {/* 绉诲姩绔彍鍗曟寜閽?*/}
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -257,7 +360,7 @@ function App() {
                 </SheetTrigger>
                 <SheetContent side="right" className="minecraft-panel border-l-4 border-minecraft-wood w-[280px]">
                   <SheetHeader>
-                    <SheetTitle className="font-pixel text-minecraft-gold">功能菜单</SheetTitle>
+                    <SheetTitle className="font-pixel text-minecraft-gold">鍔熻兘鑿滃崟</SheetTitle>
                   </SheetHeader>
                   <nav className="mt-6 space-y-2">
                     {navItems.map((item) => {
@@ -266,11 +369,12 @@ function App() {
                         <button
                           key={item.id}
                           onClick={() => handleTabChange(item.id)}
+                          disabled={isBattleLocked && item.id !== 'game'}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-pixel text-left transition-all ${
                             activeTab === item.id
                               ? `${item.activeColor} text-white`
                               : 'text-white hover:bg-white/10'
-                          }`}
+                          } ${(isBattleLocked && item.id !== 'game') ? 'opacity-40 cursor-not-allowed' : ''}`}
                         >
                           <Icon className="w-5 h-5" />
                           {item.label}
@@ -285,7 +389,7 @@ function App() {
         </div>
       </header>
 
-      {/* 桌面端标签栏 */}
+      {/* 妗岄潰绔爣绛炬爮 */}
       <div className="hidden lg:block sticky top-[72px] z-40 bg-[#1a1a2e]/95 backdrop-blur border-b-4 border-minecraft-wood">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <nav className="flex gap-1 overflow-x-auto">
@@ -295,11 +399,12 @@ function App() {
                 <button
                   key={item.id}
                   onClick={() => handleTabChange(item.id)}
+                  disabled={isBattleLocked && item.id !== 'game'}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-pixel text-sm whitespace-nowrap transition-all ${
                     activeTab === item.id
                       ? `${item.activeColor} text-white`
                       : 'text-minecraft-stone hover:text-white hover:bg-white/10'
-                  }`}
+                  } ${(isBattleLocked && item.id !== 'game') ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
@@ -310,9 +415,83 @@ function App() {
         </div>
       </div>
 
-      {/* 主内容 */}
+      {/* 涓诲唴瀹?*/}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-4 pb-24 lg:pb-6">
-        {/* 当前页面标题 */}
+        {showPreview && (
+          <div className="preview-mode-panel mb-4 p-4 rounded-xl border-2 border-minecraft-diamond/60">
+            <div className="flex items-start gap-3 flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h3 className="font-pixel text-minecraft-diamond text-xl flex items-center gap-2">
+                  <Eye className="w-5 h-5" />
+                  鍔熻兘娴嬭瘯妯″紡
+                </h3>
+                <p className="font-pixel text-minecraft-stone text-sm mt-1">
+                  涓嬮潰鎸夐挳鍙揩閫熷垏鍒板悇鍔熻兘椤碉紝鎵€鏈夋搷浣滈兘鏄湡瀹炲彲鐢ㄧ殑銆?                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="minecraft-btn border-minecraft-stone text-minecraft-stone"
+                onClick={() => {
+                  window.location.href = '/';
+                }}
+              >
+                閫€鍑烘祴璇曟ā寮?              </Button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {previewTabs.map((tab) => {
+                const item = navItems.find((nav) => nav.id === tab);
+                if (!item) return null;
+                return (
+                  <Button
+                    key={`preview-${tab}`}
+                    size="sm"
+                    variant={activeTab === tab ? 'default' : 'outline'}
+                    className={`minecraft-btn ${activeTab === tab ? item.activeColor : 'border-minecraft-stone text-minecraft-stone'}`}
+                    disabled={isBattleLocked && tab !== 'game'}
+                    onClick={() => handleTabChange(tab)}
+                  >
+                    {item.label}
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                className="minecraft-btn bg-minecraft-diamond hover:bg-minecraft-diamond/90"
+                onClick={createPreviewUsers}
+              >
+                <UserPlus className="w-4 h-4 mr-1" />
+                鐢熸垚婕旂ず鐢ㄦ埛
+              </Button>
+              <Button
+                size="sm"
+                className="minecraft-btn bg-minecraft-grass hover:bg-minecraft-grass/90"
+                onClick={runPreviewCheckIn}
+              >
+                <PlayCircle className="w-4 h-4 mr-1" />
+                涓€閿墦鍗?              </Button>
+              <Button
+                size="sm"
+                className="minecraft-btn bg-minecraft-gold hover:bg-minecraft-gold/90"
+                onClick={runPreviewReward}
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                鍙戞斁濂栧姳 +20
+              </Button>
+              <Button
+                size="sm"
+                className="minecraft-btn bg-minecraft-emerald hover:bg-minecraft-emerald/90"
+                onClick={runPreviewRedeem}
+              >
+                <Coins className="w-4 h-4 mr-1" />
+                鍟嗗煄鍏戞崲
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 褰撳墠椤甸潰鏍囬 */}
         <div className="mb-4 flex items-center gap-2">
           {currentNavItem && (
             <>
@@ -325,59 +504,42 @@ function App() {
         {renderContent()}
       </main>
 
-      {/* 移动端底部导航 */}
+      {/* 绉诲姩绔簳閮ㄥ鑸?*/}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 minecraft-header border-t-4 border-minecraft-wood">
-        <div className="grid grid-cols-5 gap-1 p-2">
-          {/* 显示前5个主要功能 */}
-          {navItems.slice(0, 5).map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-all ${
-                  activeTab === item.id
-                    ? `${item.activeColor} text-white`
-                    : 'text-minecraft-stone'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-pixel">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        {/* 更多按钮 */}
-        <div className="grid grid-cols-3 gap-1 px-2 pb-2">
-          {navItems.slice(5).map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-all ${
-                  activeTab === item.id
-                    ? `${item.activeColor} text-white`
-                    : 'text-minecraft-stone'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-pixel">{item.label}</span>
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-5 gap-1 p-2 pb-2">
+          {/* 鍙樉绀哄父鐢ㄥ姛鑳?*/}
+          {navItems
+            .filter(item => ['game', 'checkin', 'revive', 'achievements', 'leaderboard'].includes(item.id))
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id)}
+                  disabled={isBattleLocked && item.id !== 'game'}
+                  className={`flex flex-col items-center gap-1 py-2 rounded-lg transition-all ${
+                    activeTab === item.id
+                      ? `${item.activeColor} text-white`
+                      : 'text-minecraft-stone'
+                  } ${(isBattleLocked && item.id !== 'game') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[10px] font-pixel">{item.label}</span>
+                </button>
+              );
+            })}
         </div>
       </nav>
 
-      {/* 底部 */}
+      {/* 搴曢儴 */}
       <footer className="minecraft-footer mt-auto hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="text-center">
             <p className="font-pixel text-sm text-minecraft-stone">
-              我的世界打卡小程序 v2.0
+              我的世界打卡小程序 v3.0
             </p>
             <p className="font-pixel text-xs text-minecraft-stone/70 mt-1">
-              数据可导出导入，支持多端同步
+              数据可导出导入，支持多端同步 | 成就系统已解锁
             </p>
           </div>
         </div>
@@ -387,3 +549,4 @@ function App() {
 }
 
 export default App;
+

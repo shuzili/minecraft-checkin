@@ -52,6 +52,12 @@ interface StageEnemyConfig {
   dashDurationMs?: number;
   dashCooldownMs?: number;
   hopIntervalMs?: number;
+  fireIntervalMs?: number;
+  projectileSpeed?: number;
+  fuseTimeMs?: number;
+  explosionRadius?: number;
+  teleportIntervalMs?: number;
+  hp?: number;
 }
 
 interface StageLayout {
@@ -374,7 +380,6 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
     if (!hostRef.current) return;
 
     const layout = layoutByLevel(level);
-    const isLevelOne = level.index === 1;
     const hasMineNodes = (layout.mineNodes?.length ?? 0) > 0;
     const tileSize = 32;
     const biomeTheme = {
@@ -1215,7 +1220,6 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
       }
 
       private interactOneShot() {
-        const pointer = this.input.activePointer;
         const interactPressed = Phaser.Input.Keyboard.JustDown(this.keyK) || (inputRef.current.interact && !this.prevVirtual.interact);
         this.prevVirtual.interact = inputRef.current.interact;
         if (!interactPressed) return;

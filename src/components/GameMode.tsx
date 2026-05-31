@@ -755,6 +755,68 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         makeEnemyFrame('enemy-0', 0);
         makeEnemyFrame('enemy-1', 1);
 
+        // skeleton: white/gray, thin
+        makeTexture('skeleton-0', 36, 44, (g) => {
+          g.fillStyle(0xd5d5d5, 1); g.fillRect(9, 6, 18, 11);
+          g.fillStyle(0xffffff, 1); g.fillRect(11, 8, 14, 7);
+          g.fillStyle(0x333333, 1); g.fillRect(14, 10, 3, 2); g.fillRect(20, 10, 3, 2);
+          g.fillStyle(0x999999, 1); g.fillRect(10, 18, 16, 12);
+          g.fillStyle(0xbbbbbb, 1); g.fillRect(7, 20, 4, 9); g.fillRect(26, 20, 4, 9);
+          g.fillStyle(0x777777, 1); g.fillRect(12, 30, 5, 12); g.fillRect(20, 30, 5, 12);
+        });
+        makeTexture('skeleton-1', 36, 44, (g) => {
+          g.fillStyle(0xd5d5d5, 1); g.fillRect(9, 6, 18, 11);
+          g.fillStyle(0xffffff, 1); g.fillRect(11, 8, 14, 7);
+          g.fillStyle(0x333333, 1); g.fillRect(14, 10, 3, 2); g.fillRect(20, 10, 3, 2);
+          g.fillStyle(0x999999, 1); g.fillRect(10, 18, 16, 12);
+          g.fillStyle(0xbbbbbb, 1); g.fillRect(6, 21, 5, 9); g.fillRect(27, 19, 4, 9);
+          g.fillStyle(0x777777, 1); g.fillRect(12, 30, 5, 12); g.fillRect(21, 30, 5, 12);
+        });
+
+        // creeper: green, blocky
+        makeTexture('creeper-0', 34, 40, (g) => {
+          g.fillStyle(0x4caf50, 1); g.fillRect(6, 10, 22, 10);
+          g.fillStyle(0x66cc66, 1); g.fillRect(8, 12, 18, 6);
+          g.fillStyle(0x333333, 1); g.fillRect(10, 14, 4, 3); g.fillRect(20, 14, 4, 3);
+          g.fillStyle(0x111111, 1); g.fillRect(12, 17, 10, 3);
+          g.fillStyle(0x3d8b40, 1); g.fillRect(4, 20, 26, 8);
+          g.fillStyle(0x4caf50, 1); g.fillRect(6, 28, 22, 5);
+          g.fillStyle(0x336633, 1); g.fillRect(9, 33, 7, 7); g.fillRect(19, 33, 7, 7);
+        });
+        makeTexture('creeper-1', 34, 40, (g) => {
+          g.fillStyle(0x4caf50, 1); g.fillRect(6, 10, 22, 10);
+          g.fillStyle(0x66cc66, 1); g.fillRect(8, 12, 18, 6);
+          g.fillStyle(0x333333, 1); g.fillRect(10, 14, 4, 3); g.fillRect(20, 14, 4, 3);
+          g.fillStyle(0x111111, 1); g.fillRect(12, 17, 10, 3);
+          g.fillStyle(0x3d8b40, 1); g.fillRect(4, 20, 26, 8);
+          g.fillStyle(0x4caf50, 1); g.fillRect(6, 28, 22, 5);
+          g.fillStyle(0x336633, 1); g.fillRect(8, 34, 8, 6); g.fillRect(18, 34, 8, 6);
+        });
+
+        // enderman: tall, black body + purple eyes
+        makeTexture('enderman-0', 30, 52, (g) => {
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 4, 14, 11);
+          g.fillStyle(0x222233, 1); g.fillRect(9, 6, 12, 7);
+          g.fillStyle(0xd4aaff, 1); g.fillRect(11, 8, 3, 3); g.fillRect(17, 8, 3, 3);
+          g.fillStyle(0x9966cc, 1); g.fillRect(12, 9, 2, 2); g.fillRect(18, 9, 2, 2);
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(10, 15, 10, 14);
+          g.fillStyle(0x222244, 1); g.fillRect(11, 17, 8, 10);
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 29, 14, 7);
+          g.fillStyle(0x161630, 1); g.fillRect(10, 36, 20, 16);
+          g.fillStyle(0x222244, 1); g.fillRect(7, 36, 4, 15); g.fillRect(19, 36, 4, 15);
+        });
+        makeTexture('enderman-1', 30, 52, (g) => {
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 4, 14, 11);
+          g.fillStyle(0x222233, 1); g.fillRect(9, 6, 12, 7);
+          g.fillStyle(0xd4aaff, 1); g.fillRect(11, 8, 3, 3); g.fillRect(17, 8, 3, 3);
+          g.fillStyle(0x9966cc, 1); g.fillRect(12, 9, 2, 2); g.fillRect(18, 9, 2, 2);
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(10, 15, 10, 14);
+          g.fillStyle(0x222244, 1); g.fillRect(11, 17, 8, 10);
+          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 29, 14, 7);
+          g.fillStyle(0x161630, 1); g.fillRect(10, 36, 20, 16);
+          g.fillStyle(0x222244, 1); g.fillRect(6, 37, 5, 14); g.fillRect(20, 37, 5, 14);
+        });
+
         const makeBossFrame = (key: string, variant: 0 | 1) => {
           makeTexture(key, 74, 74, (g) => {
             g.fillStyle(0x2c1f40, 1);
@@ -799,6 +861,9 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           });
         }
         if (!this.anims.exists('enemy-walk')) this.anims.create({ key: 'enemy-walk', frames: [{ key: 'enemy-0' }, { key: 'enemy-1' }], frameRate: 5, repeat: -1 });
+        if (!this.anims.exists('skeleton-walk')) this.anims.create({ key: 'skeleton-walk', frames: [{ key: 'skeleton-0' }, { key: 'skeleton-1' }], frameRate: 4, repeat: -1 });
+        if (!this.anims.exists('creeper-walk')) this.anims.create({ key: 'creeper-walk', frames: [{ key: 'creeper-0' }, { key: 'creeper-1' }], frameRate: 3, repeat: -1 });
+        if (!this.anims.exists('enderman-walk')) this.anims.create({ key: 'enderman-walk', frames: [{ key: 'enderman-0' }, { key: 'enderman-1' }], frameRate: 4, repeat: -1 });
         if (!this.anims.exists('slime-hop')) this.anims.create({ key: 'slime-hop', frames: [{ key: 'slime-0' }, { key: 'slime-1' }], frameRate: 4, repeat: -1 });
         if (!this.anims.exists('boss-float')) this.anims.create({ key: 'boss-float', frames: [{ key: 'boss-0' }, { key: 'boss-1' }], frameRate: 3, repeat: -1 });
         if (!this.anims.exists('lava-flow')) this.anims.create({ key: 'lava-flow', frames: [{ key: 'lava-0' }, { key: 'lava-1' }, { key: 'lava-2' }], frameRate: 6, repeat: -1 });
@@ -1010,7 +1075,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         this.arrowGroup = this.physics.add.group({ allowGravity: false });
         layout.enemies.forEach((enemyConfig) => {
           const enemyKind: EnemyKind = enemyConfig.type || 'zombie';
-          const enemyTexture = enemyKind === 'slime' ? 'slime-0' : 'enemy-0';
+          let enemyTexture = 'enemy-0'; if (enemyKind === 'slime') enemyTexture = 'slime-0'; else if (enemyKind === 'skeleton') enemyTexture = 'skeleton-0'; else if (enemyKind === 'creeper') enemyTexture = 'creeper-0'; else if (enemyKind === 'enderman') enemyTexture = 'enderman-0';
           const enemy = this.enemies.create(enemyConfig.x, enemyConfig.y, enemyTexture) as Phaser.Physics.Arcade.Sprite;
           enemy.setData('baseX', enemyConfig.x);
           enemy.setData('range', enemyConfig.range);
@@ -1040,16 +1105,14 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             enemy.play('slime-hop');
           } else if (enemyKind === 'skeleton') {
             enemy.setDisplaySize(38, 44);
-            enemy.setTint(0xcccccc);
-            enemy.play('enemy-walk');
+            enemy.play('skeleton-walk');
           } else if (enemyKind === 'creeper') {
             enemy.setDisplaySize(36, 40);
-            enemy.setTint(0x55cc55);
-            enemy.play('enemy-walk');
+            enemy.play('creeper-walk');
           } else if (enemyKind === 'enderman') {
-            enemy.setDisplaySize(34, 48);
-            enemy.setTint(0x553388);
-            enemy.play('enemy-walk');
+            enemy.setDisplaySize(32, 52);
+            enemy.setOrigin(0.5, 0.55);
+            enemy.play('enderman-walk');
           } else {
             enemy.setDisplaySize(40, 44);
             enemy.play('enemy-walk');
@@ -1279,6 +1342,8 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
                   duration: 220,
                   onComplete: () => enemy.destroy(),
                 });
+              } else {
+                enemy.setAlpha(0.7);
               }
             } else {
               this.tweens.add({
@@ -1524,16 +1589,14 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             const lastTeleportAt = Number(enemy.getData('lastTeleportAt') || -99999);
             if (nearPlayer && now - lastTeleportAt >= teleportIntervalMs) {
               enemy.setData('lastTeleportAt', now);
-              const tpLeft = leftBound;
-              const tpRight = rightBound;
+              const tpBehind = this.player.x + (this.facing > 0 ? -80 : 80);
+              const clampedX = Phaser.Math.Clamp(tpBehind, leftBound, rightBound);
               this.tweens.add({
                 targets: enemy,
                 alpha: 0,
                 duration: 100,
                 onComplete: () => {
                   if (!enemy.active) return;
-                  const offsetX = this.player.x + Phaser.Math.Between(-120, 120);
-                  const clampedX = Phaser.Math.Clamp(offsetX, tpLeft, tpRight);
                   enemy.setPosition(clampedX, this.player.y - 10);
                   this.tweens.add({ targets: enemy, alpha: 1, duration: 120 });
                   this.cameras.main.shake(60, 0.002);
@@ -1541,12 +1604,15 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
               });
             }
             if (nearPlayer) {
-              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.15 : -baseSpeed * 1.15;
+              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.25 : -baseSpeed * 1.25;
             } else if (Math.abs(velocityX) < 12) {
               velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
             } else {
               velocityX = Math.sign(velocityX) * baseSpeed;
             }
+            const eHp = Number(enemy.getData('hp') || 2);
+            const targetAlpha = eHp <= 1 ? 0.7 : 1;
+            enemy.setAlpha(targetAlpha);
             enemy.setScale(1, 1);
           } else {
             const dashSpeed = Number(enemy.getData('dashSpeed') || baseSpeed * 2.2);

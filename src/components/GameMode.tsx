@@ -39,7 +39,7 @@ interface SimpleRect {
   h: number;
 }
 
-type EnemyKind = 'zombie' | 'slime';
+type EnemyKind = 'zombie' | 'slime' | 'skeleton' | 'creeper' | 'enderman';
 
 interface StageEnemyConfig {
   type?: EnemyKind;
@@ -212,8 +212,13 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
         ],
         gates: [{ id: 'gate-a', x: 2930, y: 230, w: 26, h: 95, needs: 2 }],
         enemies: [
-          { x: 1740, y: 350, range: 95, speed: 85 },
-          { x: 2460, y: 230, range: 70, speed: 95 },
+          { type: 'zombie', x: 600, y: 410, range: 82, speed: 74, aggroRange: 165, dashSpeed: 185, dashDurationMs: 225, dashCooldownMs: 1100 },
+          { type: 'slime', x: 950, y: 370, range: 72, speed: 60, aggroRange: 210, hopIntervalMs: 850 },
+          { type: 'skeleton', x: 1250, y: 330, range: 70, speed: 48, aggroRange: 280, fireIntervalMs: 1350, projectileSpeed: 235 },
+          { type: 'enderman', x: 1480, y: 390, range: 55, speed: 74, aggroRange: 270, teleportIntervalMs: 3200, hp: 2 },
+          { type: 'zombie', x: 1780, y: 310, range: 85, speed: 78, aggroRange: 175, dashSpeed: 190, dashDurationMs: 230, dashCooldownMs: 1050 },
+          { type: 'creeper', x: 2200, y: 270, range: 52, speed: 80, aggroRange: 210, fuseTimeMs: 1150, explosionRadius: 95 },
+          { type: 'zombie', x: 2500, y: 230, range: 88, speed: 82, aggroRange: 180, dashSpeed: 195, dashDurationMs: 235, dashCooldownMs: 1020 },
         ],
         checkpoints: [{ id: 'cp-4', x: 1970, y: 290 }],
       };
@@ -249,8 +254,14 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
         ],
         gates: [{ id: 'gate-a', x: 2970, y: 246, w: 28, h: 105, needs: 3 }],
         enemies: [
-          { x: 1700, y: 280, range: 80, speed: 95 },
-          { x: 2610, y: 200, range: 85, speed: 100 },
+          { type: 'zombie', x: 550, y: 420, range: 80, speed: 76, aggroRange: 170, dashSpeed: 190, dashDurationMs: 230, dashCooldownMs: 1050 },
+          { type: 'slime', x: 950, y: 380, range: 70, speed: 62, aggroRange: 220, hopIntervalMs: 820 },
+          { type: 'skeleton', x: 1200, y: 340, range: 70, speed: 50, aggroRange: 290, fireIntervalMs: 1300, projectileSpeed: 240 },
+          { type: 'creeper', x: 1480, y: 260, range: 50, speed: 82, aggroRange: 220, fuseTimeMs: 1100, explosionRadius: 100 },
+          { type: 'enderman', x: 1750, y: 320, range: 52, speed: 76, aggroRange: 280, teleportIntervalMs: 3000, hp: 2 },
+          { type: 'zombie', x: 2150, y: 280, range: 82, speed: 82, aggroRange: 180, dashSpeed: 195, dashDurationMs: 235, dashCooldownMs: 1000 },
+          { type: 'skeleton', x: 2600, y: 200, range: 65, speed: 52, aggroRange: 300, fireIntervalMs: 1250, projectileSpeed: 250 },
+          { type: 'zombie', x: 2900, y: 180, range: 78, speed: 85, aggroRange: 185, dashSpeed: 200, dashDurationMs: 240, dashCooldownMs: 980 },
         ],
         checkpoints: [{ id: 'cp-5', x: 2280, y: 290 }],
       };
@@ -286,12 +297,17 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
         ],
         gates: [{ id: 'gate-a', x: 3040, y: 242, w: 30, h: 108, needs: 3 }],
         enemies: [
-          { x: 1390, y: 290, range: 90, speed: 100 },
-          { x: 2210, y: 260, range: 95, speed: 110 },
-          { x: 2860, y: 170, range: 75, speed: 115 },
+          { type: 'zombie', x: 500, y: 410, range: 78, speed: 78, aggroRange: 175, dashSpeed: 195, dashDurationMs: 235, dashCooldownMs: 1000 },
+          { type: 'slime', x: 800, y: 370, range: 68, speed: 64, aggroRange: 230, hopIntervalMs: 800 },
+          { type: 'skeleton', x: 1250, y: 290, range: 65, speed: 52, aggroRange: 300, fireIntervalMs: 1250, projectileSpeed: 245 },
+          { type: 'enderman', x: 1550, y: 260, range: 50, speed: 78, aggroRange: 290, teleportIntervalMs: 2900, hp: 2 },
+          { type: 'zombie', x: 1950, y: 300, range: 80, speed: 82, aggroRange: 185, dashSpeed: 198, dashDurationMs: 240, dashCooldownMs: 980 },
+          { type: 'creeper', x: 2250, y: 220, range: 48, speed: 84, aggroRange: 230, fuseTimeMs: 1050, explosionRadius: 105 },
+          { type: 'skeleton', x: 2680, y: 190, range: 60, speed: 54, aggroRange: 310, fireIntervalMs: 1200, projectileSpeed: 255 },
+          { type: 'zombie', x: 3000, y: 170, range: 75, speed: 86, aggroRange: 190, dashSpeed: 205, dashDurationMs: 245, dashCooldownMs: 950 },
         ],
         checkpoints: [{ id: 'cp-6', x: 2260, y: 250 }],
-        boss: { x: 3240, y: 150, hp: 6 },
+        boss: { x: 3240, y: 150, hp: 8 },
       };
   }
 };
@@ -398,6 +414,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
       private gates: Phaser.Physics.Arcade.Sprite[] = [];
       private checkpoints: Phaser.Physics.Arcade.Sprite[] = [];
       private enemies!: Phaser.Physics.Arcade.Group;
+      private arrowGroup!: Phaser.Physics.Arcade.Group;
       private goal!: Phaser.Physics.Arcade.Sprite;
       private boss: Phaser.Physics.Arcade.Sprite | null = null;
       private pickaxe!: Phaser.GameObjects.Sprite;
@@ -946,6 +963,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         });
 
         this.enemies = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.arrowGroup = this.physics.add.group({ allowGravity: false });
         layout.enemies.forEach((enemyConfig) => {
           const enemyKind: EnemyKind = enemyConfig.type || 'zombie';
           const enemyTexture = enemyKind === 'slime' ? 'slime-0' : 'enemy-0';
@@ -960,9 +978,18 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           enemy.setData('dashDurationMs', enemyConfig.dashDurationMs ?? 220);
           enemy.setData('dashCooldownMs', enemyConfig.dashCooldownMs ?? 1300);
           enemy.setData('hopIntervalMs', enemyConfig.hopIntervalMs ?? 900);
+          enemy.setData('fireIntervalMs', enemyConfig.fireIntervalMs ?? 1500);
+          enemy.setData('projectileSpeed', enemyConfig.projectileSpeed ?? 220);
+          enemy.setData('fuseTimeMs', enemyConfig.fuseTimeMs ?? 1300);
+          enemy.setData('explosionRadius', enemyConfig.explosionRadius ?? 90);
+          enemy.setData('teleportIntervalMs', enemyConfig.teleportIntervalMs ?? 3500);
+          enemy.setData('hp', enemyConfig.hp ?? 1);
           enemy.setData('dashUntil', 0);
           enemy.setData('lastDashAt', -99999);
           enemy.setData('nextHopAt', this.time.now + Phaser.Math.Between(180, 420));
+          enemy.setData('nextFireAt', this.time.now + Phaser.Math.Between(600, 1200));
+          enemy.setData('fuseState', 'idle');
+          enemy.setData('lastTeleportAt', -99999);
           if (enemyKind === 'slime') {
             enemy.setDisplaySize(34, 24);
             enemy.setOrigin(0.5, 0.62);
@@ -987,6 +1014,16 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           this.boss.setVelocityX(70);
           this.bossHp = layout.boss.hp;
         }
+
+        this.physics.add.overlap(this.player, this.arrowGroup, (_player, arrowObj) => {
+          const arrow = arrowObj as Phaser.Physics.Arcade.Sprite;
+          if (!arrow.active) return;
+          this.applyHit('被箭矢击中');
+          arrow.destroy();
+        }, undefined, this);
+        this.physics.add.collider(this.arrowGroup, this.platforms, (arrowObj) => {
+          (arrowObj as Phaser.Physics.Arcade.Sprite).destroy();
+        }, undefined, this);
 
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.enemies, this.platforms);
@@ -1059,6 +1096,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
       }
 
       private interactOneShot() {
+        const pointer = this.input.activePointer;
         const interactPressed = Phaser.Input.Keyboard.JustDown(this.keyK) || (inputRef.current.interact && !this.prevVirtual.interact);
         this.prevVirtual.interact = inputRef.current.interact;
         if (!interactPressed) return;
@@ -1335,6 +1373,103 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             }
             const bob = Math.sin((now + enemy.x) * 0.012);
             enemy.setScale(1 + Math.abs(bob) * 0.08, 1 - Math.abs(bob) * 0.05);
+          } else if (kind === 'skeleton') {
+            const nearPlayer =
+              aggroRange > 0 &&
+              Math.abs(this.player.x - enemy.x) <= aggroRange &&
+              Math.abs(this.player.y - enemy.y) <= 80;
+            if (nearPlayer) {
+              enemy.setVelocityX(0);
+              const fireIntervalMs = Number(enemy.getData('fireIntervalMs') || 1500);
+              const nextFireAt = Number(enemy.getData('nextFireAt') || 0);
+              if (now >= nextFireAt) {
+                enemy.setData('nextFireAt', now + fireIntervalMs + Phaser.Math.Between(-200, 200));
+                const arrow = this.arrowGroup.create(enemy.x, enemy.y - 6, 'arrow') as Phaser.Physics.Arcade.Sprite;
+                arrow.setDisplaySize(16, 6);
+                const projectileSpeed = Number(enemy.getData('projectileSpeed') || 220);
+                arrow.setVelocityX(this.player.x >= enemy.x ? projectileSpeed : -projectileSpeed);
+                arrow.setFlipX(this.player.x < enemy.x);
+                arrow.setData('lifespan', now + 2200);
+                this.cameras.main.shake(40, 0.001);
+              }
+            } else if (Math.abs(velocityX) < 12) {
+              velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
+            } else {
+              velocityX = Math.sign(velocityX) * baseSpeed;
+            }
+            enemy.setScale(1, 1);
+          } else if (kind === 'creeper') {
+            const nearPlayer =
+              aggroRange > 0 &&
+              Math.abs(this.player.x - enemy.x) <= aggroRange &&
+              Math.abs(this.player.y - enemy.y) <= 70;
+            const fuseState = String(enemy.getData('fuseState') || 'idle');
+            if (nearPlayer) {
+              if (fuseState === 'idle') {
+                enemy.setData('fuseState', 'fusing');
+                enemy.setData('fuseStartedAt', now);
+                enemy.setTint(0xff8888);
+              }
+              const fuseStartedAt = Number(enemy.getData('fuseStartedAt') || now);
+              const fuseTimeMs = Number(enemy.getData('fuseTimeMs') || 1300);
+              if (now - fuseStartedAt >= fuseTimeMs) {
+                const explosionRadius = Number(enemy.getData('explosionRadius') || 90);
+                const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+                if (dist <= explosionRadius) {
+                  this.applyHit('被苦力怕炸伤');
+                }
+                this.cameras.main.shake(180, 0.008);
+                this.cameras.main.flash(140, 255, 180, 120);
+                enemy.destroy();
+              } else {
+                const progress = (now - fuseStartedAt) / fuseTimeMs;
+                enemy.setScale(1 + progress * 0.2, 1 - progress * 0.1);
+                velocityX = 0;
+              }
+            } else {
+              if (fuseState === 'fusing') {
+                enemy.setData('fuseState', 'idle');
+                enemy.clearTint();
+              }
+              if (Math.abs(velocityX) < 12) {
+                velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
+              } else {
+                velocityX = Math.sign(velocityX) * baseSpeed;
+              }
+              enemy.setScale(1, 1);
+            }
+          } else if (kind === 'enderman') {
+            const nearPlayer =
+              aggroRange > 0 &&
+              Math.abs(this.player.x - enemy.x) <= aggroRange;
+            const teleportIntervalMs = Number(enemy.getData('teleportIntervalMs') || 3500);
+            const lastTeleportAt = Number(enemy.getData('lastTeleportAt') || -99999);
+            if (nearPlayer && now - lastTeleportAt >= teleportIntervalMs) {
+              enemy.setData('lastTeleportAt', now);
+              const tpLeft = leftBound;
+              const tpRight = rightBound;
+              this.tweens.add({
+                targets: enemy,
+                alpha: 0,
+                duration: 100,
+                onComplete: () => {
+                  if (!enemy.active) return;
+                  const offsetX = this.player.x + Phaser.Math.Between(-120, 120);
+                  const clampedX = Phaser.Math.Clamp(offsetX, tpLeft, tpRight);
+                  enemy.setPosition(clampedX, this.player.y - 10);
+                  this.tweens.add({ targets: enemy, alpha: 1, duration: 120 });
+                  this.cameras.main.shake(60, 0.002);
+                },
+              });
+            }
+            if (nearPlayer) {
+              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.15 : -baseSpeed * 1.15;
+            } else if (Math.abs(velocityX) < 12) {
+              velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
+            } else {
+              velocityX = Math.sign(velocityX) * baseSpeed;
+            }
+            enemy.setScale(1, 1);
           } else {
             const dashSpeed = Number(enemy.getData('dashSpeed') || baseSpeed * 2.2);
             const dashDurationMs = Number(enemy.getData('dashDurationMs') || 220);

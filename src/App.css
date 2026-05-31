@@ -1,4 +1,4 @@
-/* 导入VT323像素字体 */
+﻿/* 导入VT323像素字体 */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* 我的世界主题颜色 */
@@ -22,7 +22,7 @@
 
 /* 像素字体 */
 .font-pixel {
-  font-family: 'VT323', monospace;
+  font-family: 'VT323', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', monospace;
   letter-spacing: 0.5px;
 }
 
@@ -77,7 +77,7 @@
 
 /* 按钮样式 */
 .minecraft-btn {
-  font-family: 'VT323', monospace;
+  font-family: 'VT323', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', monospace;
   font-size: 1.1rem;
   letter-spacing: 0.5px;
   border: 3px solid rgba(0, 0, 0, 0.3);
@@ -103,7 +103,7 @@
 
 /* 输入框样式 */
 .minecraft-input {
-  font-family: 'VT323', monospace;
+  font-family: 'VT323', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', monospace;
   font-size: 1.1rem;
   background: rgba(0, 0, 0, 0.3);
   border: 3px solid var(--minecraft-stone);

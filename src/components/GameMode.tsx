@@ -708,6 +708,15 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             g.fillRect(21, 31, 6, 11);
           });
         };
+        makeTexture('arrow', 16, 6, (g) => {
+          g.fillStyle(0xd4c090, 1);
+          g.fillRect(0, 1, 14, 4);
+          g.fillStyle(0x8b6914, 1);
+          g.fillRect(14, 0, 3, 6);
+          g.fillStyle(0xeeeeee, 1);
+          g.fillRect(0, 2, 3, 2);
+        });
+
         makeEnemyFrame('enemy-0', 0);
         makeEnemyFrame('enemy-1', 1);
 
@@ -994,6 +1003,18 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             enemy.setDisplaySize(34, 24);
             enemy.setOrigin(0.5, 0.62);
             enemy.play('slime-hop');
+          } else if (enemyKind === 'skeleton') {
+            enemy.setDisplaySize(38, 44);
+            enemy.setTint(0xcccccc);
+            enemy.play('enemy-walk');
+          } else if (enemyKind === 'creeper') {
+            enemy.setDisplaySize(36, 40);
+            enemy.setTint(0x55cc55);
+            enemy.play('enemy-walk');
+          } else if (enemyKind === 'enderman') {
+            enemy.setDisplaySize(34, 48);
+            enemy.setTint(0x553388);
+            enemy.play('enemy-walk');
           } else {
             enemy.setDisplaySize(40, 44);
             enemy.play('enemy-walk');

@@ -1532,7 +1532,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
                 const projectileSpeed = Number(enemy.getData('projectileSpeed') || 220);
                 arrow.setVelocityX(this.player.x >= enemy.x ? projectileSpeed : -projectileSpeed);
                 arrow.setFlipX(this.player.x < enemy.x);
-                arrow.setData('lifespan', now + 2200);
+                arrow.setData('lifespan', now + 1800);
                 this.cameras.main.shake(40, 0.001);
               }
             } else if (Math.abs(velocityX) < 12) {
@@ -1546,29 +1546,76 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
               aggroRange > 0 &&
               Math.abs(this.player.x - enemy.x) <= aggroRange &&
               Math.abs(this.player.y - enemy.y) <= 70;
+            const inFuseRange =
+              aggroRange > 0 &&
+              Math.abs(this.player.x - enemy.x) <= 55 &&
+              Math.abs(this.player.y - enemy.y) <= 50;
             const fuseState = String(enemy.getData('fuseState') || 'idle');
-            if (nearPlayer) {
+            if (inFuseRange) {
               if (fuseState === 'idle') {
                 enemy.setData('fuseState', 'fusing');
                 enemy.setData('fuseStartedAt', now);
-                enemy.setTint(0xff8888);
               }
+              enemy.setTint(Math.floor(now / 100) % 2 === 0 ? 0xff4444 : 0xffffff);
+              enemy.x += Phaser.Math.Between(-2, 2);
+              enemy.y += Phaser.Math.Between(-1, 1);
               const fuseStartedAt = Number(enemy.getData('fuseStartedAt') || now);
               const fuseTimeMs = Number(enemy.getData('fuseTimeMs') || 1300);
+              const progress = (now - fuseStartedAt) / fuseTimeMs;
+              enemy.setScale(1 + progress * 0.25, 1 - progress * 0.12);
               if (now - fuseStartedAt >= fuseTimeMs) {
                 const explosionRadius = Number(enemy.getData('explosionRadius') || 90);
                 const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y);
                 if (dist <= explosionRadius) {
-                  this.applyHit('被苦力怕炸伤');
+                  this.hearts -= 2;
+                  if (this.hearts < 0) this.hearts = 0;
+                  const knockAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                  this.player.setVelocity(Math.cos(knockAngle) * 350, Math.min(Math.sin(knockAngle) * 280, -200));
+                  this.hits += 2;
+                  this.lastHitAt = now;
+                  this.player.setTint(0xff7070);
+                  this.time.delayedCall(120, () => this.player.clearTint());
+                  callbacksRef.current.onAction('hit');
+                  callbacksRef.current.onAction('hit');
+                  this.refreshHud();
+                  if (this.hearts <= 0) {
+                    finished = true;
+                    callbacksRef.current.onAction('lose');
+                    callbacksRef.current.onFail('被苦力怕炸伤');
+                  }
                 }
-                this.cameras.main.shake(180, 0.008);
-                this.cameras.main.flash(140, 255, 180, 120);
+                for (let p = 0; p < 10; p++) {
+                  const pAngle = (p / 10) * Math.PI * 2;
+                  const pDist = Phaser.Math.Between(20, 55);
+                  const px = enemy.x + Math.cos(pAngle) * pDist * 0.4;
+                  const py = enemy.y + Math.sin(pAngle) * pDist * 0.4;
+                  const particle = this.add.circle(px, py, Phaser.Math.Between(3, 8), 0xff8844, 1);
+                  particle.setDepth(5);
+                  this.tweens.add({
+                    targets: particle,
+                    x: enemy.x + Math.cos(pAngle) * pDist,
+                    y: enemy.y + Math.sin(pAngle) * pDist - Phaser.Math.Between(10, 30),
+                    alpha: 0,
+                    scale: 2.5,
+                    duration: Phaser.Math.Between(350, 600),
+                    ease: 'Quad.easeOut',
+                    onComplete: () => particle.destroy(),
+                  });
+                }
+                this.cameras.main.shake(200, 0.01);
+                this.cameras.main.flash(160, 255, 200, 100);
                 enemy.destroy();
-              } else {
-                const progress = (now - fuseStartedAt) / fuseTimeMs;
-                enemy.setScale(1 + progress * 0.2, 1 - progress * 0.1);
-                velocityX = 0;
+                return;
               }
+              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.3 : -baseSpeed * 1.3;
+            } else if (nearPlayer) {
+              if (fuseState === 'fusing') {
+                enemy.setData('fuseState', 'idle');
+                enemy.clearTint();
+                enemy.setScale(1, 1);
+              }
+              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.15 : -baseSpeed * 1.15;
+              enemy.setScale(1, 1);
             } else {
               if (fuseState === 'fusing') {
                 enemy.setData('fuseState', 'idle');

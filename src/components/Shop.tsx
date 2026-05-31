@@ -15,7 +15,7 @@ interface ShopProps {
   redemptionRecords: RedemptionRecord[];
   onAddShopItem: (item: Omit<ShopItem, 'id'>) => void;
   onDeleteShopItem: (itemId: string) => void;
-  onRedeemItem: (userId: string, itemId: string) => void;
+  onRedeemItem: (userId: string, itemId: string, quantity: number) => void;
 }
 
 const ICONS = {
@@ -114,7 +114,7 @@ export function Shop({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-pixel text-minecraft-gold flex items-center gap-2">
           <ShoppingCart className="w-6 h-6" />
-          积分商城
+          绿宝石商城
         </h2>
         <div className="flex gap-2">
           <Button
@@ -169,7 +169,7 @@ export function Shop({
                 
                 <div>
                   <label className="block text-sm font-pixel mb-2 text-minecraft-stone">
-                    所需积分
+                    所需绿宝石
                   </label>
                   <Input
                     type="number"
@@ -298,9 +298,14 @@ export function Shop({
                       <span className="text-lg font-pixel text-minecraft-gold">
                         {item.cost}
                       </span>
-                      <span className="text-xs font-pixel text-minecraft-stone">积分</span>
+                      <span className="text-xs font-pixel text-minecraft-stone">绿宝石</span>
+                      {item.weeklyLimit ? (
+                        <span className="text-xs font-pixel text-minecraft-lava ml-auto">
+                          周限购: {item.weeklyLimit}
+                        </span>
+                      ) : null}
                       {!item.unlimited && (
-                        <span className="text-xs font-pixel text-minecraft-stone ml-auto">
+                        <span className="text-xs font-pixel text-minecraft-stone">
                           库存: {item.stock}
                         </span>
                       )}
@@ -320,6 +325,7 @@ export function Shop({
                     variant="ghost"
                     size="icon"
                     onClick={() => { onDeleteShopItem(item.id); play('pop'); }}
+                    disabled={item.isSystemMaterial}
                     className="shrink-0 text-minecraft-lava hover:text-minecraft-lava/80 hover:bg-minecraft-lava/10"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -356,7 +362,7 @@ export function Shop({
                     <p className="text-xs text-minecraft-stone">{selectedItem.description}</p>
                   </div>
                   <div className="ml-auto text-lg font-pixel text-minecraft-gold">
-                    {selectedItem.cost} 积分
+                    {selectedItem.cost} 绿宝石
                   </div>
                 </div>
               </div>
@@ -382,7 +388,7 @@ export function Shop({
                           className="font-pixel"
                           disabled={user.totalScore < selectedItem.cost * redeemQuantity}
                         >
-                          {user.name} (积分: {user.totalScore})
+                          {user.name} (绿宝石: {user.totalScore})
                         </SelectItem>
                       ))
                     )}
@@ -419,7 +425,7 @@ export function Shop({
                     +
                   </Button>
                   <span className="text-sm font-pixel text-minecraft-stone ml-2">
-                    共 {selectedItem.cost * redeemQuantity} 积分
+                    共 {selectedItem.cost * redeemQuantity} 绿宝石
                   </span>
                 </div>
               </div>
@@ -463,7 +469,7 @@ export function Shop({
                     <div className="text-xs text-minecraft-stone/70">{record.itemName}</div>
                   </div>
                   <div className="font-pixel text-minecraft-gold">
-                    -{record.cost}
+                    -{record.cost} {record.quantity && record.quantity > 1 ? `(x${record.quantity})` : ''}
                   </div>
                 </div>
               ))

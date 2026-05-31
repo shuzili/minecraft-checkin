@@ -66,7 +66,8 @@ export function useConfetti() {
   }, []);
 
   // 连续打卡奖励特效
-  const streakBonus = useCallback((_days: number) => {
+  const streakBonus = useCallback((days?: number) => {
+    void days;
     const colors = [MINECRAFT_COLORS.gold, MINECRAFT_COLORS.diamond, MINECRAFT_COLORS.emerald];
     
     // 多次发射

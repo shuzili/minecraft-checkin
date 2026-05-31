@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import type { CheckInProject } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -145,7 +145,9 @@ export function ProjectManager({ projects, onAddProject, onDeleteProject }: Proj
                 </label>
                 <Select
                   value={newProject.rule}
-                  onValueChange={(value) => setNewProject({ ...newProject, rule: value as any })}
+                  onValueChange={(value: 'daily' | 'weekly' | 'custom') =>
+                    setNewProject({ ...newProject, rule: value })
+                  }
                 >
                   <SelectTrigger className="minecraft-input font-pixel">
                     <SelectValue />
@@ -176,7 +178,7 @@ export function ProjectManager({ projects, onAddProject, onDeleteProject }: Proj
               
               <div>
                 <label className="block text-sm font-pixel mb-2 text-minecraft-stone">
-                  每次打卡积分
+                  每次打卡绿宝石
                 </label>
                 <Input
                   type="number"
@@ -208,7 +210,7 @@ export function ProjectManager({ projects, onAddProject, onDeleteProject }: Proj
                 
                 <div>
                   <label className="block text-sm font-pixel mb-2 text-minecraft-stone">
-                    奖励积分
+                    奖励绿宝石
                   </label>
                   <Input
                     type="number"
@@ -350,3 +352,4 @@ export function ProjectManager({ projects, onAddProject, onDeleteProject }: Proj
     </div>
   );
 }
+

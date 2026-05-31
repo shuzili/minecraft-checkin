@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
-import type { User, CheckInRecord } from '@/types';
+import type { User, CheckInInstance, CheckInProject } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Medal, Award, TrendingUp, Calendar, Star, User as UserIcon, Folder } from 'lucide-react';
+import { Trophy, Medal, Award, Calendar, Star, Flame } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface LeaderboardProps {
   users: User[];
+  instances: CheckInInstance[];
+  projects: CheckInProject[];
 }
 
 interface ProjectStat {
@@ -21,7 +23,7 @@ interface UserProjectStat {
   projects: ProjectStat[];
 }
 
-export function Leaderboard({ users }: LeaderboardProps) {
+export function Leaderboard({ users, instances, projects }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState('today');
 
   const sortedByToday = useMemo(() => {
@@ -32,35 +34,34 @@ export function Leaderboard({ users }: LeaderboardProps) {
     return [...users].sort((a, b) => b.totalScore - a.totalScore);
   }, [users]);
 
-  const projectStats = useMemo(() => {
+  const streakStats = useMemo(() => {
     const stats: UserProjectStat[] = users.map(user => {
-      const projectMap = new Map<string, { name: string; count: number }>();
+      const userInstances = instances.filter(instance => instance.userId === user.id);
       
-      user.checkInHistory.forEach((record: CheckInRecord) => {
-        const existing = projectMap.get(record.projectId);
-        if (existing) {
-          existing.count++;
-        } else {
-          projectMap.set(record.projectId, { name: record.projectName, count: 1 });
-        }
-      });
-      
-      const projects: ProjectStat[] = Array.from(projectMap.entries()).map(([_, value]) => ({
-        projectName: value.name,
-        count: value.count
-      })).sort((a, b) => b.count - a.count);
+      const userProjects: ProjectStat[] = userInstances.map(instance => {
+        const project = projects.find(p => p.id === instance.projectId);
+        return {
+          projectName: project?.name || instance.projectId,
+          count: instance.currentStreak
+        };
+      }).sort((a, b) => b.count - a.count);
       
       return {
         userId: user.id,
         userName: user.name,
         userAvatar: user.avatar,
-        totalCount: user.checkInHistory.length,
-        projects
+        totalCount: 0,
+        projects: userProjects
       };
-    }).sort((a, b) => b.totalCount - a.totalCount);
+    }).sort((a, b) => {
+      // 按第一个项目的连续天数排序
+      const aFirstProjectCount = a.projects.length > 0 ? a.projects[0].count : 0;
+      const bFirstProjectCount = b.projects.length > 0 ? b.projects[0].count : 0;
+      return bFirstProjectCount - aFirstProjectCount;
+    });
     
     return stats;
-  }, [users]);
+  }, [users, instances, projects]);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -123,7 +124,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
                   <h4 className="font-pixel text-lg truncate">{user.name}</h4>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs font-pixel text-minecraft-gold">
-                      总积分: {user.totalScore}
+                      总绿宝石: {user.totalScore}
                     </span>
                     <span className="text-xs font-pixel text-minecraft-diamond">
                       复活卡: {user.reviveCards}
@@ -139,7 +140,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
                     {user[scoreKey]}
                   </div>
                   <div className="text-xs font-pixel text-minecraft-stone">
-                    {scoreKey === 'todayScore' ? '今日积分' : '总积分'}
+                    {scoreKey === 'todayScore' ? '今日绿宝石' : '总绿宝石'}
                   </div>
                 </div>
               </div>
@@ -150,7 +151,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
     );
   };
 
-  const renderProjectLeaderboard = (stats: UserProjectStat[]) => {
+  const renderStreakLeaderboard = (stats: UserProjectStat[]) => {
     if (stats.length === 0) {
       return (
         <div className="text-center py-8 text-minecraft-stone font-pixel">
@@ -187,22 +188,12 @@ export function Leaderboard({ users }: LeaderboardProps) {
                     {stat.projects.slice(0, 3).map((project, idx) => (
                       <span 
                         key={idx}
-                        className="text-xs font-pixel px-2 py-0.5 rounded bg-minecraft-diamond/20 text-minecraft-diamond flex items-center gap-1"
+                        className="text-xs font-pixel px-2 py-0.5 rounded bg-minecraft-lava/20 text-minecraft-lava flex items-center gap-1"
                       >
-                        <Folder className="w-3 h-3" />
-                        {project.projectName} x{project.count}
+                        <Flame className="w-3 h-3" />
+                        {project.projectName} {project.count}天
                       </span>
                     ))}
-                  </div>
-                </div>
-
-                {/* 总打卡次数 */}
-                <div className="text-right shrink-0">
-                  <div className="text-2xl font-pixel text-minecraft-diamond">
-                    {stat.totalCount}
-                  </div>
-                  <div className="text-xs font-pixel text-minecraft-stone">
-                    总打卡次数
                   </div>
                 </div>
               </div>
@@ -238,10 +229,10 @@ export function Leaderboard({ users }: LeaderboardProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="project"
-            className="font-pixel data-[state=active]:bg-minecraft-diamond data-[state=active]:text-white"
+            className="font-pixel data-[state=active]:bg-minecraft-lava data-[state=active]:text-white"
           >
-            <Folder className="w-4 h-4 mr-2" />
-            打卡榜
+            <Flame className="w-4 h-4 mr-2" />
+            连续打卡
           </TabsTrigger>
         </TabsList>
 
@@ -250,7 +241,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
             <CardContent className="p-4">
               <h3 className="text-lg font-pixel text-minecraft-grass mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                今日积分榜
+                今日绿宝石榜
               </h3>
               {renderLeaderboard(sortedByToday, 'todayScore')}
             </CardContent>
@@ -262,7 +253,7 @@ export function Leaderboard({ users }: LeaderboardProps) {
             <CardContent className="p-4">
               <h3 className="text-lg font-pixel text-minecraft-gold mb-4 flex items-center gap-2">
                 <Star className="w-5 h-5" />
-                总积分排行榜
+                总绿宝石排行榜
               </h3>
               {renderLeaderboard(sortedByTotal, 'totalScore')}
             </CardContent>
@@ -270,13 +261,13 @@ export function Leaderboard({ users }: LeaderboardProps) {
         </TabsContent>
 
         <TabsContent value="project" className="mt-4">
-          <Card className="minecraft-card border-4 border-minecraft-diamond">
+          <Card className="minecraft-card border-4 border-minecraft-lava">
             <CardContent className="p-4">
-              <h3 className="text-lg font-pixel text-minecraft-diamond mb-4 flex items-center gap-2">
-                <Folder className="w-5 h-5" />
-                打卡统计榜
+              <h3 className="text-lg font-pixel text-minecraft-lava mb-4 flex items-center gap-2">
+                <Flame className="w-5 h-5" />
+                连续打卡榜
               </h3>
-              {renderProjectLeaderboard(projectStats)}
+              {renderStreakLeaderboard(streakStats)}
             </CardContent>
           </Card>
         </TabsContent>

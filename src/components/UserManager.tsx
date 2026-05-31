@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import type { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, User as UserIcon, Upload } from 'lucide-react';
+import { Plus, Trash2, User as UserIcon, Upload, Award } from 'lucide-react';
 import { DEFAULT_STEVE_AVATAR, DEFAULT_ALEX_AVATAR } from '@/hooks/useLocalStorage';
 import { useSound } from '@/hooks/useSound';
 
@@ -12,9 +12,10 @@ interface UserManagerProps {
   users: User[];
   onAddUser: (name: string, avatar: string) => void;
   onDeleteUser: (userId: string) => void;
+  onCalculateStreakRewards: (userId: string) => void;
 }
 
-export function UserManager({ users, onAddUser, onDeleteUser }: UserManagerProps) {
+export function UserManager({ users, onAddUser, onDeleteUser, onCalculateStreakRewards }: UserManagerProps) {
   const [newUserName, setNewUserName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState<'steve' | 'alex' | 'custom'>('steve');
   const [customAvatar, setCustomAvatar] = useState('');
@@ -214,21 +215,32 @@ export function UserManager({ users, onAddUser, onDeleteUser }: UserManagerProps
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-pixel text-minecraft-gold">
-                        {user.totalScore} 积分
+                        {user.totalScore} 绿宝石
                       </span>
                       <span className="text-xs font-pixel text-minecraft-diamond">
                         {user.reviveCards} 复活卡
                       </span>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="shrink-0 text-minecraft-lava hover:text-minecraft-lava/80 hover:bg-minecraft-lava/10"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onCalculateStreakRewards(user.id)}
+                      className="shrink-0 text-minecraft-gold hover:text-minecraft-gold/80 hover:bg-minecraft-gold/10"
+                      title="计算连续打卡奖励"
+                    >
+                      <Award className="w-5 h-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="shrink-0 text-minecraft-lava hover:text-minecraft-lava/80 hover:bg-minecraft-lava/10"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -238,3 +250,4 @@ export function UserManager({ users, onAddUser, onDeleteUser }: UserManagerProps
     </div>
   );
 }
+

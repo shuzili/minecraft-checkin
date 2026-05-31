@@ -1,8 +1,9 @@
 import { useCallback, useRef, useEffect } from 'react';
 import type { SoundType } from '@/types';
 
-export function useSound(_soundEnabled?: boolean) {
+export function useSound(soundEnabled?: boolean) {
   const isSoundEnabled = () => {
+    if (typeof soundEnabled === 'boolean') return soundEnabled;
     if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem('soundEnabled');
     return saved !== null ? saved === 'true' : true;
@@ -13,7 +14,13 @@ export function useSound(_soundEnabled?: boolean) {
   useEffect(() => {
     // 初始化AudioContext
     if (typeof window !== 'undefined') {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const WebAudioContext =
+        window.AudioContext ||
+        (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+      if (WebAudioContext) {
+        audioContextRef.current = new WebAudioContext();
+      }
     }
     return () => {
       if (audioContextRef.current) {
@@ -205,7 +212,7 @@ export function useSound(_soundEnabled?: boolean) {
     });
   }, []);
 
-  const play = useCallback((type: SoundType) => {
+  const play = (type: SoundType) => {
     if (!isSoundEnabled()) return;
     
     switch (type) {
@@ -234,7 +241,7 @@ export function useSound(_soundEnabled?: boolean) {
         playRevive();
         break;
     }
-  }, [playClick, playCheckIn, playSuccess, playError, playLevelUp, playCoin, playPop, playRevive]);
+  };
 
   return { play };
 }

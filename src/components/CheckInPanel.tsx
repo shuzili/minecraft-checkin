@@ -2,17 +2,19 @@ import { useState, useMemo } from 'react';
 import type { User, CheckInProject, CheckInInstance } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Check, Flame, RotateCcw, Trophy } from 'lucide-react';
+import { Check, Flame, RotateCcw, Trophy, Calendar } from 'lucide-react';
 import { useSound } from '@/hooks/useSound';
 import { useConfetti } from '@/hooks/useConfetti';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 interface CheckInPanelProps {
   users: User[];
   projects: CheckInProject[];
   instances: CheckInInstance[];
   onCheckIn: (userId: string, projectId: string) => void;
+  onCheckInWithDate: (userId: string, projectId: string, date: string) => void;
   onUseReviveCard: (userId: string, projectId: string) => void;
 }
 
@@ -21,12 +23,15 @@ export function CheckInPanel({
   projects, 
   instances, 
   onCheckIn, 
+  onCheckInWithDate,
   onUseReviveCard 
 }: CheckInPanelProps) {
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [showStreakDialog, setShowStreakDialog] = useState(false);
-  const [streakInfo, setStreakInfo] = useState<{ days: number; bonus: number; cards: number } | null>(null);
+  const [streakInfo, setStreakInfo] = useState<{ days: number; cards: number } | null>(null);
+  const [showMakeupDialog, setShowMakeupDialog] = useState(false);
+  const [makeupDate, setMakeupDate] = useState('');
   const { play } = useSound();
   const { checkInSuccess, streakBonus } = useConfetti();
 
@@ -84,7 +89,6 @@ export function CheckInPanel({
       if (newStreak >= project.streakTarget && newStreak % project.streakTarget === 0) {
         setStreakInfo({
           days: newStreak,
-          bonus: project.streakBonusScore,
           cards: project.streakBonusReviveCards
         });
         setShowStreakDialog(true);
@@ -97,6 +101,16 @@ export function CheckInPanel({
     if (!canUseReviveCard) return;
     onUseReviveCard(selectedUser, selectedProject);
     play('revive');
+  };
+
+  const handleMakeupCheckIn = () => {
+    if (!selectedUser || !selectedProject || !makeupDate) return;
+    
+    onCheckInWithDate(selectedUser, selectedProject, makeupDate);
+    play('checkIn');
+    checkInSuccess();
+    setShowMakeupDialog(false);
+    setMakeupDate('');
   };
 
   const getStreakDisplay = () => {
@@ -172,7 +186,7 @@ export function CheckInPanel({
                   <h3 className="font-pixel text-xl text-minecraft-grass">{currentUser.name}</h3>
                   <div className="flex gap-4 mt-1">
                     <span className="text-sm font-pixel text-minecraft-gold">
-                      总积分: {currentUser.totalScore}
+                      绿宝石: {currentUser.totalScore}
                     </span>
                     <span className="text-sm font-pixel text-minecraft-diamond">
                       复活卡: {currentUser.reviveCards}
@@ -197,10 +211,10 @@ export function CheckInPanel({
                 </p>
                 <div className="flex gap-2 mt-2">
                   <span className="text-xs font-pixel bg-minecraft-gold/20 text-minecraft-gold px-2 py-1 rounded">
-                    +{currentProject.scorePerCheckIn}分/次
+                    +{currentProject.scorePerCheckIn}绿宝石/次
                   </span>
                   <span className="text-xs font-pixel bg-minecraft-diamond/20 text-minecraft-diamond px-2 py-1 rounded">
-                    {currentProject.streakTarget}天奖{currentProject.streakBonusScore}分
+                    {currentProject.streakTarget}天赠{currentProject.streakBonusReviveCards}复活卡
                   </span>
                 </div>
               </div>
@@ -230,11 +244,12 @@ export function CheckInPanel({
               </div>
 
               {/* 打卡按钮 */}
-              <div className="flex gap-3">
+              <div className="space-y-3">
+                {/* 主要打卡按钮 */}
                 <Button
                   onClick={handleCheckIn}
                   disabled={hasCheckedInToday}
-                  className={`flex-1 minecraft-btn text-lg py-6 ${
+                  className={`w-full minecraft-btn text-lg py-6 ${
                     hasCheckedInToday 
                       ? 'bg-minecraft-stone cursor-not-allowed' 
                       : 'bg-minecraft-grass hover:bg-minecraft-grass/90'
@@ -244,16 +259,31 @@ export function CheckInPanel({
                   {hasCheckedInToday ? '今日已打卡' : '立即打卡'}
                 </Button>
 
-                {canUseReviveCard && (
+                {/* 辅助按钮 */}
+                <div className="flex gap-3">
+                  {canUseReviveCard && (
+                    <Button
+                      onClick={handleUseReviveCard}
+                      className="flex-1 minecraft-btn bg-minecraft-diamond hover:bg-minecraft-diamond/90"
+                      title="使用复活卡延续连续记录"
+                    >
+                      <RotateCcw className="w-5 h-5 mr-2" />
+                      复活
+                    </Button>
+                  )}
+
                   <Button
-                    onClick={handleUseReviveCard}
-                    className="minecraft-btn bg-minecraft-diamond hover:bg-minecraft-diamond/90"
-                    title="使用复活卡延续连续记录"
+                    onClick={() => {
+                      setShowMakeupDialog(true);
+                      play('click');
+                    }}
+                    className={`${canUseReviveCard ? 'flex-1' : 'w-full'} minecraft-btn bg-minecraft-gold hover:bg-minecraft-gold/90`}
+                    title="补打卡"
                   >
-                    <RotateCcw className="w-5 h-5 mr-2" />
-                    复活
+                    <Calendar className="w-5 h-5 mr-2" />
+                    补打
                   </Button>
-                )}
+                </div>
               </div>
 
               {hasCheckedInToday && (
@@ -289,9 +319,6 @@ export function CheckInPanel({
               恭喜你达成连续打卡目标！
             </p>
             <div className="space-y-2">
-              <div className="text-lg font-pixel text-minecraft-gold">
-                +{streakInfo?.bonus} 积分
-              </div>
               <div className="text-lg font-pixel text-minecraft-diamond">
                 +{streakInfo?.cards} 复活卡
               </div>
@@ -302,6 +329,58 @@ export function CheckInPanel({
             >
               太棒了！
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 补打卡弹窗 */}
+      <Dialog open={showMakeupDialog} onOpenChange={setShowMakeupDialog}>
+        <DialogContent className="minecraft-panel border-4 border-minecraft-gold">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-pixel text-minecraft-gold flex items-center gap-2">
+              <Calendar className="w-8 h-8" />
+              补打卡
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-pixel mb-2 text-minecraft-stone">
+                选择日期
+              </label>
+              <Input
+                type="date"
+                value={makeupDate}
+                onChange={(e) => setMakeupDate(e.target.value)}
+                max={today}
+                className="minecraft-input font-pixel"
+              />
+            </div>
+            <div className="p-3 bg-minecraft-gold/10 border-2 border-minecraft-gold rounded-lg">
+              <p className="font-pixel text-minecraft-stone text-sm">
+                补打卡将为所选日期添加打卡记录，并获得基础绿宝石。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setShowMakeupDialog(false);
+                  setMakeupDate('');
+                  play('click');
+                }}
+                variant="outline"
+                className="flex-1 minecraft-btn border-minecraft-stone"
+              >
+                取消
+              </Button>
+              <Button
+                onClick={handleMakeupCheckIn}
+                disabled={!makeupDate}
+                className="flex-1 minecraft-btn bg-minecraft-gold hover:bg-minecraft-gold/90"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                确认补打
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

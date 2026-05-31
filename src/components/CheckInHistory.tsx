@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -184,7 +184,7 @@ export function CheckInHistory({ users, onDeleteRecord }: CheckInHistoryProps) {
               打卡记录
             </div>
             <span className="text-sm font-normal text-minecraft-stone">
-              共 {filteredRecords.length} 条 · 积分 {totalScore}
+              共 {filteredRecords.length} 条 · 绿宝石 {totalScore}
             </span>
           </CardTitle>
         </CardHeader>
@@ -243,10 +243,10 @@ export function CheckInHistory({ users, onDeleteRecord }: CheckInHistoryProps) {
             <div className="bg-minecraft-lava/10 border-2 border-minecraft-lava rounded-lg p-4 mb-4">
               <p className="font-pixel text-white">项目：{recordToDelete.record.projectName}</p>
               <p className="font-pixel text-sm text-minecraft-stone mt-1">日期：{recordToDelete.record.date}</p>
-              <p className="font-pixel text-sm text-minecraft-gold mt-1">将扣除积分：{recordToDelete.record.score}</p>
+              <p className="font-pixel text-sm text-minecraft-gold mt-1">将扣除绿宝石：{recordToDelete.record.score}</p>
             </div>
             <p className="font-pixel text-minecraft-stone text-sm mb-4">
-              此操作将删除打卡记录并回滚积分，不可恢复！
+              此操作将删除打卡记录并回滚绿宝石，不可恢复！
             </p>
             <div className="flex gap-2">
               <Button
@@ -270,3 +270,4 @@ export function CheckInHistory({ users, onDeleteRecord }: CheckInHistoryProps) {
     </div>
   );
 }
+

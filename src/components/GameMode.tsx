@@ -101,7 +101,10 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
         enemies: [
           { type: 'zombie', x: 980, y: 438, range: 90, speed: 70, aggroRange: 160, dashSpeed: 170, dashDurationMs: 210, dashCooldownMs: 1200 },
           { type: 'slime', x: 1210, y: 438, range: 80, speed: 58, aggroRange: 220, hopIntervalMs: 860 },
+          { type: 'enderman', x: 1320, y: 430, range: 65, speed: 68, aggroRange: 250, teleportIntervalMs: 3400, hp: 2 },
+          { type: 'skeleton', x: 1430, y: 390, range: 80, speed: 45, aggroRange: 260, fireIntervalMs: 1500, projectileSpeed: 220 },
           { type: 'zombie', x: 1540, y: 358, range: 92, speed: 72, aggroRange: 180, dashSpeed: 185, dashDurationMs: 220, dashCooldownMs: 1150 },
+          { type: 'creeper', x: 1830, y: 350, range: 60, speed: 72, aggroRange: 190, fuseTimeMs: 1300, explosionRadius: 90 },
           { type: 'slime', x: 1780, y: 318, range: 78, speed: 62, aggroRange: 240, hopIntervalMs: 760 },
         ],
         checkpoints: [{ id: 'cp-1', x: 1120, y: 430 }],
@@ -141,6 +144,9 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { type: 'zombie', x: 800, y: 420, range: 85, speed: 70, aggroRange: 150, dashSpeed: 180, dashDurationMs: 220, dashCooldownMs: 1100 },
           { type: 'slime', x: 1150, y: 340, range: 75, speed: 55, aggroRange: 200, hopIntervalMs: 900 },
           { type: 'zombie', x: 1420, y: 390, range: 90, speed: 72, aggroRange: 165, dashSpeed: 175, dashDurationMs: 210, dashCooldownMs: 1200 },
+          { type: 'enderman', x: 1580, y: 390, range: 60, speed: 70, aggroRange: 270, teleportIntervalMs: 3100, hp: 2 },
+          { type: 'skeleton', x: 1700, y: 350, range: 75, speed: 48, aggroRange: 280, fireIntervalMs: 1350, projectileSpeed: 230 },
+          { type: 'creeper', x: 2100, y: 310, range: 55, speed: 78, aggroRange: 210, fuseTimeMs: 1200, explosionRadius: 95 },
           { type: 'slime', x: 1950, y: 310, range: 80, speed: 60, aggroRange: 230, hopIntervalMs: 820 },
           { type: 'zombie', x: 2250, y: 240, range: 88, speed: 78, aggroRange: 170, dashSpeed: 190, dashDurationMs: 230, dashCooldownMs: 1050 },
         ],
@@ -177,8 +183,13 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { id: 'gate-b', x: 2620, y: 290, w: 28, h: 110, needs: 3 },
         ],
         enemies: [
-          { x: 1410, y: 350, range: 85, speed: 80 },
-          { x: 2210, y: 310, range: 90, speed: 90 },
+          { type: 'zombie', x: 650, y: 420, range: 85, speed: 72, aggroRange: 160, dashSpeed: 180, dashDurationMs: 220, dashCooldownMs: 1150 },
+          { type: 'slime', x: 1050, y: 390, range: 75, speed: 58, aggroRange: 200, hopIntervalMs: 880 },
+          { type: 'skeleton', x: 1400, y: 350, range: 75, speed: 45, aggroRange: 270, fireIntervalMs: 1400, projectileSpeed: 225 },
+          { type: 'enderman', x: 1650, y: 310, range: 60, speed: 72, aggroRange: 260, teleportIntervalMs: 3300, hp: 2 },
+          { type: 'zombie', x: 1850, y: 350, range: 88, speed: 75, aggroRange: 170, dashSpeed: 180, dashDurationMs: 225, dashCooldownMs: 1100 },
+          { type: 'creeper', x: 2200, y: 310, range: 55, speed: 78, aggroRange: 200, fuseTimeMs: 1200, explosionRadius: 95 },
+          { type: 'zombie', x: 2450, y: 270, range: 85, speed: 80, aggroRange: 175, dashSpeed: 190, dashDurationMs: 230, dashCooldownMs: 1050 },
         ],
         checkpoints: [{ id: 'cp-3', x: 1700, y: 330 }],
       };
@@ -1246,16 +1257,38 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         callbacksRef.current.onAction('attack');
         this.cameras.main.shake(80, 0.0022);
 
+        this.arrowGroup.getChildren().forEach((entity) => {
+          const arrow = entity as Phaser.Physics.Arcade.Sprite;
+          const lifespan = Number(arrow.getData('lifespan') || 0);
+          if (this.time.now > lifespan) arrow.destroy();
+        });
+
         this.enemies.getChildren().forEach((entity) => {
           const enemy = entity as Phaser.Physics.Arcade.Sprite;
           if (Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y) < 80) {
-            this.tweens.add({
-              targets: enemy,
-              alpha: 0,
-              y: enemy.y - 14,
-              duration: 120,
-              onComplete: () => enemy.destroy(),
-            });
+            const eKind = String(enemy.getData('type') || 'zombie') as EnemyKind;
+            if (eKind === 'enderman') {
+              let eHp = Number(enemy.getData('hp') || 2);
+              eHp -= 1;
+              enemy.setData('hp', eHp);
+              this.cameras.main.flash(70, 180, 120, 255, false);
+              this.tweens.add({ targets: enemy, alpha: 0.25, yoyo: true, duration: 70 });
+              if (eHp <= 0) {
+                this.tweens.add({
+                  targets: enemy, alpha: 0, scale: 0.4,
+                  duration: 220,
+                  onComplete: () => enemy.destroy(),
+                });
+              }
+            } else {
+              this.tweens.add({
+                targets: enemy,
+                alpha: 0,
+                y: enemy.y - 14,
+                duration: 120,
+                onComplete: () => enemy.destroy(),
+              });
+            }
           }
         });
 

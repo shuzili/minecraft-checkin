@@ -53,7 +53,7 @@ const MATERIAL_CONFIG: Record<MaterialId, { name: string; price: number; weeklyL
 const DEFAULT_CAMPAIGN_LEVELS: CampaignLevelDefinition[] = [
   { id: 'campaign-1-grass', index: 1, name: '草地训练营', biome: 'grassland', description: '白天主世界训练：挥镐开采、躲避怪物并冲向终点', objective: '开采 3 个矿块并抵达终点', parTimeMs: 110000 },
   { id: 'campaign-2-cave', index: 2, name: '矿洞陷阱带', biome: 'cave', description: '躲避落石与尖刺，切换地形机关', objective: '抵达终点并激活2个机关', parTimeMs: 120000 },
-  { id: 'campaign-3-redstone', index: 3, name: '红石迷门', biome: 'redstone', description: '开关门、限时通路与路径判断', objective: '开采 5 个矿块并抵达终点', parTimeMs: 140000 },
+  { id: 'campaign-3-redstone', index: 3, name: '红石迷门', biome: 'redstone', description: '开关门、限时通路与路径判断', objective: '激活 3 个机关并穿越限时通路抵达终点', parTimeMs: 140000 },
   { id: 'campaign-4-rail', index: 4, name: '轨道追逐', biome: 'rail', description: '移动平台与节奏跳跃挑战', objective: '开采 6 个矿块并抵达终点', parTimeMs: 145000 },
   { id: 'campaign-5-nether', index: 5, name: '下界熔岩桥', biome: 'nether', description: '高风险跳跃与火焰敌人压制', objective: '开采 6 个矿块并抵达终点', parTimeMs: 170000 },
   { id: 'campaign-6-end', index: 6, name: '末地核心', biome: 'end', description: '终章关：机关组合与小Boss混战', objective: '开采 6 个矿块并击败Boss', parTimeMs: 190000 },
@@ -358,9 +358,17 @@ const normalizeGameState = (gameState: GameState | undefined, users: User[]): Ga
   const currentWeek = getCurrentWeek(base.season.startDate || getToday());
   const baseCampaign = base.campaign || createDefaultCampaignState(users);
   const needsCampaignUpgrade = (baseCampaign.version || 1) < CAMPAIGN_VERSION;
+  const storedCampaignLevels = baseCampaign.levels?.length ? baseCampaign.levels : DEFAULT_CAMPAIGN_LEVELS;
+  const mergedDefaultCampaignLevels = DEFAULT_CAMPAIGN_LEVELS.map((defaultLevel) => {
+    const stored = storedCampaignLevels.find(level => level.id === defaultLevel.id);
+    return stored ? { ...stored, ...defaultLevel } : defaultLevel;
+  });
+  const extraStoredCampaignLevels = storedCampaignLevels.filter(
+    storedLevel => !DEFAULT_CAMPAIGN_LEVELS.some(defaultLevel => defaultLevel.id === storedLevel.id)
+  );
   const campaignLevels = needsCampaignUpgrade
     ? DEFAULT_CAMPAIGN_LEVELS
-    : (baseCampaign.levels?.length ? baseCampaign.levels : DEFAULT_CAMPAIGN_LEVELS);
+    : [...mergedDefaultCampaignLevels, ...extraStoredCampaignLevels];
   const normalizedCampaign: CampaignGameState = {
     version: CAMPAIGN_VERSION,
     levels: campaignLevels,

@@ -60,6 +60,42 @@ interface StageEnemyConfig {
   hp?: number;
 }
 
+interface StageFallingRockConfig {
+  x: number;
+  y: number;
+  dropToY: number;
+  intervalMs?: number;
+  speed?: number;
+  size?: number;
+}
+
+interface StageMovingPlatformConfig {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  axis: 'x' | 'y';
+  distance: number;
+  speed: number;
+  startDir?: -1 | 1;
+}
+
+interface StageTimedBridgeConfig extends SimpleRect {
+  cycleMs: number;
+  openMs: number;
+  phaseMs?: number;
+}
+
+interface StageFireColumnConfig {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  cycleMs: number;
+  activeMs: number;
+  phaseMs?: number;
+}
+
 interface StageLayout {
   worldWidth: number;
   worldHeight: number;
@@ -67,11 +103,16 @@ interface StageLayout {
   goal: { x: number; y: number };
   platforms: SimpleRect[];
   hazards: SimpleRect[];
+  spikeHazards?: SimpleRect[];
   switches: { id: string; x: number; y: number }[];
   gates: { id: string; x: number; y: number; w: number; h: number; needs: number }[];
   enemies: StageEnemyConfig[];
   checkpoints: { id: string; x: number; y: number }[];
   mineNodes?: { id: string; x: number; y: number; hp: number }[];
+  fallingRocks?: StageFallingRockConfig[];
+  movingPlatforms?: StageMovingPlatformConfig[];
+  timedBridges?: StageTimedBridgeConfig[];
+  fireColumns?: StageFireColumnConfig[];
   boss?: { x: number; y: number; hp: number };
 }
 
@@ -131,20 +172,21 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { x: 2060, y: 350, w: 180, h: 34 },
           { x: 2380, y: 280, w: 220, h: 36 },
         ],
-        hazards: [
+        hazards: [],
+        spikeHazards: [
           { x: 560, y: 520, w: 80, h: 20 },
           { x: 1640, y: 520, w: 90, h: 20 },
+          { x: 2120, y: 520, w: 70, h: 20 },
         ],
         switches: [
           { id: 'sw-a', x: 1020, y: 380 },
           { id: 'sw-b', x: 1800, y: 350 },
         ],
-        gates: [{ id: 'gate-a', x: 2320, y: 310, w: 28, h: 100, needs: 4 }],
-        mineNodes: [
-          { id: 'mine-1', x: 400, y: 454, hp: 3 },
-          { id: 'mine-2', x: 1080, y: 380, hp: 3 },
-          { id: 'mine-3', x: 1680, y: 350, hp: 3 },
-          { id: 'mine-4', x: 2200, y: 310, hp: 4 },
+        gates: [{ id: 'gate-a', x: 2320, y: 310, w: 28, h: 100, needs: 2 }],
+        fallingRocks: [
+          { x: 860, y: 120, dropToY: 470, intervalMs: 1700, speed: 290, size: 22 },
+          { x: 1360, y: 120, dropToY: 455, intervalMs: 1450, speed: 305, size: 20 },
+          { x: 1960, y: 110, dropToY: 445, intervalMs: 1850, speed: 280, size: 24 },
         ],
         enemies: [
           { type: 'zombie', x: 800, y: 420, range: 85, speed: 70, aggroRange: 150, dashSpeed: 180, dashDurationMs: 220, dashCooldownMs: 1100 },
@@ -187,6 +229,10 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
         gates: [
           { id: 'gate-a', x: 1480, y: 350, w: 26, h: 90, needs: 1 },
           { id: 'gate-b', x: 2620, y: 290, w: 28, h: 110, needs: 3 },
+        ],
+        timedBridges: [
+          { x: 1710, y: 352, w: 100, h: 16, cycleMs: 2200, openMs: 900, phaseMs: 150 },
+          { x: 2230, y: 312, w: 108, h: 16, cycleMs: 2100, openMs: 860, phaseMs: 480 },
         ],
         enemies: [
           { type: 'zombie', x: 650, y: 420, range: 85, speed: 72, aggroRange: 160, dashSpeed: 180, dashDurationMs: 220, dashCooldownMs: 1150 },
@@ -234,6 +280,10 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { id: 'mine-4', x: 1650, y: 350, hp: 3 },
           { id: 'mine-5', x: 2180, y: 270, hp: 4 },
           { id: 'mine-6', x: 2750, y: 190, hp: 4 },
+        ],
+        movingPlatforms: [
+          { x: 980, y: 300, w: 92, h: 14, axis: 'x', distance: 170, speed: 72, startDir: 1 },
+          { x: 2050, y: 248, w: 90, h: 14, axis: 'y', distance: 90, speed: 62, startDir: -1 },
         ],
         gates: [{ id: 'gate-a', x: 2930, y: 230, w: 26, h: 95, needs: 6 }],
         enemies: [
@@ -285,6 +335,11 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { id: 'mine-5', x: 2320, y: 240, hp: 4 },
           { id: 'mine-6', x: 2800, y: 180, hp: 5 },
         ],
+        fireColumns: [
+          { x: 1460, y: 496, w: 26, h: 66, cycleMs: 2200, activeMs: 840, phaseMs: 0 },
+          { x: 2020, y: 496, w: 24, h: 62, cycleMs: 2100, activeMs: 780, phaseMs: 460 },
+          { x: 2620, y: 496, w: 24, h: 64, cycleMs: 2300, activeMs: 820, phaseMs: 980 },
+        ],
         gates: [{ id: 'gate-a', x: 2970, y: 246, w: 28, h: 105, needs: 6 }],
         enemies: [
           { type: 'zombie', x: 550, y: 420, range: 80, speed: 76, aggroRange: 170, dashSpeed: 190, dashDurationMs: 230, dashCooldownMs: 1050 },
@@ -335,6 +390,17 @@ const layoutByLevel = (level: CampaignLevelDefinition): StageLayout => {
           { id: 'mine-4', x: 1700, y: 260, hp: 4 },
           { id: 'mine-5', x: 2400, y: 220, hp: 5 },
           { id: 'mine-6', x: 2900, y: 170, hp: 5 },
+        ],
+        timedBridges: [
+          { x: 1080, y: 334, w: 110, h: 16, cycleMs: 1950, openMs: 820, phaseMs: 280 },
+          { x: 2145, y: 266, w: 96, h: 16, cycleMs: 2050, openMs: 860, phaseMs: 740 },
+        ],
+        movingPlatforms: [
+          { x: 1760, y: 252, w: 96, h: 14, axis: 'x', distance: 190, speed: 82, startDir: -1 },
+        ],
+        fallingRocks: [
+          { x: 1420, y: 100, dropToY: 420, intervalMs: 1700, speed: 300, size: 22 },
+          { x: 2660, y: 92, dropToY: 350, intervalMs: 1600, speed: 315, size: 20 },
         ],
         gates: [{ id: 'gate-a', x: 3040, y: 242, w: 30, h: 108, needs: 6 }],
         enemies: [
@@ -450,6 +516,10 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
       private keySpace!: Phaser.Input.Keyboard.Key;
       private platforms!: Phaser.Physics.Arcade.StaticGroup;
       private hazards!: Phaser.Physics.Arcade.Group;
+      private fallingRockGroup!: Phaser.Physics.Arcade.Group;
+      private movingPlatformGroup!: Phaser.Physics.Arcade.Group;
+      private timedBridgeGroup!: Phaser.Physics.Arcade.StaticGroup;
+      private fireColumnGroup!: Phaser.Physics.Arcade.Group;
       private switches: Phaser.Physics.Arcade.Sprite[] = [];
       private gates: Phaser.Physics.Arcade.Sprite[] = [];
       private checkpoints: Phaser.Physics.Arcade.Sprite[] = [];
@@ -659,6 +729,47 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         makeLavaFrame('lava-0', 0);
         makeLavaFrame('lava-1', 1);
         makeLavaFrame('lava-2', 2);
+        makeTexture('spike-trap', 32, 20, (g) => {
+          g.fillStyle(0x4d555d, 1);
+          g.fillRect(0, 14, 32, 6);
+          g.fillStyle(0xaab4bf, 1);
+          for (let i = 0; i < 4; i += 1) {
+            const x = i * 8;
+            g.fillTriangle(x + 1, 14, x + 4, 3, x + 7, 14);
+          }
+          g.fillStyle(0xe9f1f7, 1);
+          g.fillRect(3, 6, 2, 2);
+          g.fillRect(11, 6, 2, 2);
+          g.fillRect(19, 6, 2, 2);
+          g.fillRect(27, 6, 2, 2);
+        });
+        makeTexture('falling-rock', 26, 26, (g) => {
+          g.fillStyle(0x4e545b, 1);
+          g.fillRect(4, 4, 18, 18);
+          g.fillStyle(0x6e767e, 1);
+          g.fillRect(6, 7, 6, 5);
+          g.fillRect(13, 10, 7, 5);
+          g.fillStyle(0x2f3438, 1);
+          g.fillRect(8, 16, 8, 4);
+        });
+        makeTexture('moving-platform', 96, 14, (g) => {
+          g.fillStyle(0x5e6975, 1);
+          g.fillRect(0, 0, 96, 14);
+          g.fillStyle(0x2f3842, 1);
+          g.fillRect(0, 10, 96, 4);
+          g.fillStyle(0x8d9cad, 1);
+          for (let x = 6; x < 92; x += 12) g.fillRect(x, 3, 6, 3);
+        });
+        makeTexture('fire-column', 28, 72, (g) => {
+          g.fillStyle(0x2f1b12, 1);
+          g.fillRect(6, 58, 16, 14);
+          g.fillStyle(0xff8a2f, 1);
+          g.fillRect(10, 12, 8, 46);
+          g.fillStyle(0xffd35e, 0.9);
+          g.fillRect(12, 4, 4, 50);
+          g.fillStyle(0xfff0ac, 0.85);
+          g.fillRect(13, 0, 2, 44);
+        });
 
         const makePlayerFrame = (
           key: string,
@@ -760,66 +871,78 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         makeEnemyFrame('enemy-0', 0);
         makeEnemyFrame('enemy-1', 1);
 
-        // skeleton: white/gray, thin
-        makeTexture('skeleton-0', 36, 44, (g) => {
-          g.fillStyle(0xd5d5d5, 1); g.fillRect(9, 6, 18, 11);
-          g.fillStyle(0xffffff, 1); g.fillRect(11, 8, 14, 7);
-          g.fillStyle(0x333333, 1); g.fillRect(14, 10, 3, 2); g.fillRect(20, 10, 3, 2);
-          g.fillStyle(0x999999, 1); g.fillRect(10, 18, 16, 12);
-          g.fillStyle(0xbbbbbb, 1); g.fillRect(7, 20, 4, 9); g.fillRect(26, 20, 4, 9);
-          g.fillStyle(0x777777, 1); g.fillRect(12, 30, 5, 12); g.fillRect(20, 30, 5, 12);
+        // skeleton: blocky skull + long limbs + bow
+        makeTexture('skeleton-0', 40, 48, (g) => {
+          g.fillStyle(0x6f5a3a, 1); g.fillRect(30, 16, 6, 18);
+          g.fillStyle(0xcbb78f, 1); g.fillRect(35, 17, 1, 16);
+          g.fillStyle(0xc9c9c9, 1); g.fillRect(11, 4, 18, 14);
+          g.fillStyle(0xefefef, 1); g.fillRect(12, 5, 16, 4);
+          g.fillStyle(0x202020, 1); g.fillRect(15, 10, 4, 4); g.fillRect(21, 10, 4, 4);
+          g.fillRect(19, 14, 2, 2);
+          g.fillStyle(0xb9b9b9, 1); g.fillRect(14, 19, 12, 11);
+          g.fillStyle(0x9f9f9f, 1); g.fillRect(16, 31, 8, 3);
+          g.fillStyle(0xb8b8b8, 1); g.fillRect(8, 19, 4, 14); g.fillRect(28, 18, 4, 15);
+          g.fillStyle(0xa0a0a0, 1); g.fillRect(14, 34, 5, 12); g.fillRect(21, 34, 5, 12);
         });
-        makeTexture('skeleton-1', 36, 44, (g) => {
-          g.fillStyle(0xd5d5d5, 1); g.fillRect(9, 6, 18, 11);
-          g.fillStyle(0xffffff, 1); g.fillRect(11, 8, 14, 7);
-          g.fillStyle(0x333333, 1); g.fillRect(14, 10, 3, 2); g.fillRect(20, 10, 3, 2);
-          g.fillStyle(0x999999, 1); g.fillRect(10, 18, 16, 12);
-          g.fillStyle(0xbbbbbb, 1); g.fillRect(6, 21, 5, 9); g.fillRect(27, 19, 4, 9);
-          g.fillStyle(0x777777, 1); g.fillRect(12, 30, 5, 12); g.fillRect(21, 30, 5, 12);
-        });
-
-        // creeper: green, blocky
-        makeTexture('creeper-0', 34, 40, (g) => {
-          g.fillStyle(0x4caf50, 1); g.fillRect(6, 10, 22, 10);
-          g.fillStyle(0x66cc66, 1); g.fillRect(8, 12, 18, 6);
-          g.fillStyle(0x333333, 1); g.fillRect(10, 14, 4, 3); g.fillRect(20, 14, 4, 3);
-          g.fillStyle(0x111111, 1); g.fillRect(12, 17, 10, 3);
-          g.fillStyle(0x3d8b40, 1); g.fillRect(4, 20, 26, 8);
-          g.fillStyle(0x4caf50, 1); g.fillRect(6, 28, 22, 5);
-          g.fillStyle(0x336633, 1); g.fillRect(9, 33, 7, 7); g.fillRect(19, 33, 7, 7);
-        });
-        makeTexture('creeper-1', 34, 40, (g) => {
-          g.fillStyle(0x4caf50, 1); g.fillRect(6, 10, 22, 10);
-          g.fillStyle(0x66cc66, 1); g.fillRect(8, 12, 18, 6);
-          g.fillStyle(0x333333, 1); g.fillRect(10, 14, 4, 3); g.fillRect(20, 14, 4, 3);
-          g.fillStyle(0x111111, 1); g.fillRect(12, 17, 10, 3);
-          g.fillStyle(0x3d8b40, 1); g.fillRect(4, 20, 26, 8);
-          g.fillStyle(0x4caf50, 1); g.fillRect(6, 28, 22, 5);
-          g.fillStyle(0x336633, 1); g.fillRect(8, 34, 8, 6); g.fillRect(18, 34, 8, 6);
+        makeTexture('skeleton-1', 40, 48, (g) => {
+          g.fillStyle(0x6f5a3a, 1); g.fillRect(30, 15, 6, 18);
+          g.fillStyle(0xcbb78f, 1); g.fillRect(35, 16, 1, 16);
+          g.fillStyle(0xc9c9c9, 1); g.fillRect(11, 4, 18, 14);
+          g.fillStyle(0xefefef, 1); g.fillRect(12, 5, 16, 4);
+          g.fillStyle(0x202020, 1); g.fillRect(15, 10, 4, 4); g.fillRect(21, 10, 4, 4);
+          g.fillRect(19, 14, 2, 2);
+          g.fillStyle(0xb9b9b9, 1); g.fillRect(14, 19, 12, 11);
+          g.fillStyle(0x9f9f9f, 1); g.fillRect(16, 31, 8, 3);
+          g.fillStyle(0xb8b8b8, 1); g.fillRect(7, 20, 4, 14); g.fillRect(29, 19, 4, 15);
+          g.fillStyle(0xa0a0a0, 1); g.fillRect(15, 34, 5, 12); g.fillRect(20, 35, 5, 11);
         });
 
-        // enderman: tall, black body + purple eyes
-        makeTexture('enderman-0', 30, 52, (g) => {
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 4, 14, 11);
-          g.fillStyle(0x222233, 1); g.fillRect(9, 6, 12, 7);
-          g.fillStyle(0xd4aaff, 1); g.fillRect(11, 8, 3, 3); g.fillRect(17, 8, 3, 3);
-          g.fillStyle(0x9966cc, 1); g.fillRect(12, 9, 2, 2); g.fillRect(18, 9, 2, 2);
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(10, 15, 10, 14);
-          g.fillStyle(0x222244, 1); g.fillRect(11, 17, 8, 10);
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 29, 14, 7);
-          g.fillStyle(0x161630, 1); g.fillRect(10, 36, 20, 16);
-          g.fillStyle(0x222244, 1); g.fillRect(7, 36, 4, 15); g.fillRect(19, 36, 4, 15);
+        // creeper: square head + iconic face + four legs
+        makeTexture('creeper-0', 40, 44, (g) => {
+          g.fillStyle(0x4fbe58, 1); g.fillRect(8, 4, 24, 16);
+          g.fillStyle(0x78d57b, 1); g.fillRect(10, 6, 20, 4);
+          g.fillStyle(0x2f8a3c, 1); g.fillRect(8, 16, 24, 4);
+          g.fillStyle(0x1b1b1b, 1); g.fillRect(13, 11, 4, 4); g.fillRect(23, 11, 4, 4);
+          g.fillRect(17, 15, 6, 3); g.fillRect(17, 18, 3, 5); g.fillRect(20, 18, 3, 5);
+          g.fillStyle(0x4aac53, 1); g.fillRect(9, 20, 22, 11);
+          g.fillStyle(0x36863f, 1); g.fillRect(9, 28, 22, 3);
+          g.fillStyle(0x3d9a47, 1); g.fillRect(10, 31, 6, 11); g.fillRect(16, 32, 6, 10);
+          g.fillRect(22, 31, 6, 11); g.fillRect(28, 32, 6, 10);
         });
-        makeTexture('enderman-1', 30, 52, (g) => {
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 4, 14, 11);
-          g.fillStyle(0x222233, 1); g.fillRect(9, 6, 12, 7);
-          g.fillStyle(0xd4aaff, 1); g.fillRect(11, 8, 3, 3); g.fillRect(17, 8, 3, 3);
-          g.fillStyle(0x9966cc, 1); g.fillRect(12, 9, 2, 2); g.fillRect(18, 9, 2, 2);
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(10, 15, 10, 14);
-          g.fillStyle(0x222244, 1); g.fillRect(11, 17, 8, 10);
-          g.fillStyle(0x1a1a2e, 1); g.fillRect(8, 29, 14, 7);
-          g.fillStyle(0x161630, 1); g.fillRect(10, 36, 20, 16);
-          g.fillStyle(0x222244, 1); g.fillRect(6, 37, 5, 14); g.fillRect(20, 37, 5, 14);
+        makeTexture('creeper-1', 40, 44, (g) => {
+          g.fillStyle(0x4fbe58, 1); g.fillRect(8, 4, 24, 16);
+          g.fillStyle(0x78d57b, 1); g.fillRect(10, 6, 20, 4);
+          g.fillStyle(0x2f8a3c, 1); g.fillRect(8, 16, 24, 4);
+          g.fillStyle(0x1b1b1b, 1); g.fillRect(13, 11, 4, 4); g.fillRect(23, 11, 4, 4);
+          g.fillRect(17, 15, 6, 3); g.fillRect(17, 18, 3, 5); g.fillRect(20, 18, 3, 5);
+          g.fillStyle(0x4aac53, 1); g.fillRect(9, 20, 22, 11);
+          g.fillStyle(0x36863f, 1); g.fillRect(9, 28, 22, 3);
+          g.fillStyle(0x3d9a47, 1); g.fillRect(10, 32, 6, 10); g.fillRect(16, 31, 6, 11);
+          g.fillRect(22, 32, 6, 10); g.fillRect(28, 31, 6, 11);
+        });
+
+        // enderman: very tall slim body + long arms + purple eyes
+        makeTexture('enderman-0', 34, 58, (g) => {
+          g.fillStyle(0x0f0f14, 1); g.fillRect(9, 2, 16, 10);
+          g.fillStyle(0x1c1c28, 1); g.fillRect(10, 3, 14, 3);
+          g.fillStyle(0xd07bff, 1); g.fillRect(12, 7, 4, 2); g.fillRect(18, 7, 4, 2);
+          g.fillStyle(0x8f52c2, 1); g.fillRect(13, 8, 3, 1); g.fillRect(18, 8, 3, 1);
+          g.fillStyle(0x101018, 1); g.fillRect(11, 13, 12, 15);
+          g.fillStyle(0x181828, 1); g.fillRect(12, 14, 10, 3);
+          g.fillStyle(0x0f0f14, 1); g.fillRect(7, 15, 3, 34); g.fillRect(24, 15, 3, 34);
+          g.fillStyle(0x0f0f14, 1); g.fillRect(11, 28, 4, 28); g.fillRect(19, 28, 4, 28);
+          g.fillStyle(0x22223a, 1); g.fillRect(11, 54, 4, 3); g.fillRect(19, 54, 4, 3);
+        });
+        makeTexture('enderman-1', 34, 58, (g) => {
+          g.fillStyle(0x0f0f14, 1); g.fillRect(9, 2, 16, 10);
+          g.fillStyle(0x1c1c28, 1); g.fillRect(10, 3, 14, 3);
+          g.fillStyle(0xd07bff, 1); g.fillRect(12, 7, 4, 2); g.fillRect(18, 7, 4, 2);
+          g.fillStyle(0x8f52c2, 1); g.fillRect(13, 8, 3, 1); g.fillRect(18, 8, 3, 1);
+          g.fillStyle(0x101018, 1); g.fillRect(11, 13, 12, 15);
+          g.fillStyle(0x181828, 1); g.fillRect(12, 14, 10, 3);
+          g.fillStyle(0x0f0f14, 1); g.fillRect(6, 16, 3, 33); g.fillRect(25, 14, 3, 35);
+          g.fillStyle(0x0f0f14, 1); g.fillRect(12, 28, 4, 28); g.fillRect(18, 29, 4, 27);
+          g.fillStyle(0x22223a, 1); g.fillRect(12, 54, 4, 3); g.fillRect(18, 54, 4, 3);
         });
 
         const makeBossFrame = (key: string, variant: 0 | 1) => {
@@ -995,6 +1118,10 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
 
         this.platforms = this.physics.add.staticGroup();
         this.hazards = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.fallingRockGroup = this.physics.add.group({ allowGravity: false, immovable: false });
+        this.movingPlatformGroup = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.timedBridgeGroup = this.physics.add.staticGroup();
+        this.fireColumnGroup = this.physics.add.group({ allowGravity: false, immovable: true });
 
         layout.platforms.forEach((platform) => {
           const left = platform.x - platform.w / 2;
@@ -1017,10 +1144,24 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             const hz = this.hazards.create(left + col * tileSize + tileSize / 2, hazard.y, 'lava-0') as Phaser.Physics.Arcade.Sprite;
             hz.setDisplaySize(tileSize, Math.max(16, hazard.h));
             hz.play('lava-flow');
+            hz.setData('hazardReason', '掉入危险区域');
             const body = hz.body as Phaser.Physics.Arcade.Body;
             body.setAllowGravity(false);
             body.setImmovable(true);
             body.setSize(tileSize - 4, Math.max(14, hazard.h - 2), true);
+          }
+        });
+        layout.spikeHazards?.forEach((hazard) => {
+          const left = hazard.x - hazard.w / 2;
+          const cols = Math.max(1, Math.ceil(hazard.w / tileSize));
+          for (let col = 0; col < cols; col += 1) {
+            const hz = this.hazards.create(left + col * tileSize + tileSize / 2, hazard.y, 'spike-trap') as Phaser.Physics.Arcade.Sprite;
+            hz.setDisplaySize(tileSize, Math.max(16, hazard.h));
+            hz.setData('hazardReason', '被尖刺扎伤');
+            const body = hz.body as Phaser.Physics.Arcade.Body;
+            body.setAllowGravity(false);
+            body.setImmovable(true);
+            body.setSize(tileSize - 6, Math.max(12, hazard.h - 4), true);
           }
         });
 
@@ -1076,6 +1217,75 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           return cp;
         });
 
+        layout.fallingRocks?.forEach((rockConfig) => {
+          const rock = this.fallingRockGroup.create(rockConfig.x, rockConfig.y, 'falling-rock') as Phaser.Physics.Arcade.Sprite;
+          const size = rockConfig.size ?? 22;
+          rock.setDisplaySize(size, size);
+          rock.setVisible(false);
+          rock.setData('spawnX', rockConfig.x);
+          rock.setData('spawnY', rockConfig.y);
+          rock.setData('dropToY', rockConfig.dropToY);
+          rock.setData('speed', rockConfig.speed ?? 290);
+          rock.setData('intervalMs', rockConfig.intervalMs ?? 1700);
+          rock.setData('nextDropAt', this.time.now + Phaser.Math.Between(140, 980));
+          rock.setData('dropping', false);
+          rock.setData('hazardReason', '被落石砸中');
+          const body = rock.body as Phaser.Physics.Arcade.Body;
+          body.setAllowGravity(false);
+          body.setImmovable(false);
+          body.enable = false;
+        });
+
+        layout.movingPlatforms?.forEach((platformConfig) => {
+          const platform = this.movingPlatformGroup.create(platformConfig.x, platformConfig.y, 'moving-platform') as Phaser.Physics.Arcade.Sprite;
+          platform.setDisplaySize(platformConfig.w, platformConfig.h);
+          platform.setData('baseX', platformConfig.x);
+          platform.setData('baseY', platformConfig.y);
+          platform.setData('axis', platformConfig.axis);
+          platform.setData('distance', platformConfig.distance);
+          platform.setData('speed', platformConfig.speed);
+          platform.setData('dir', platformConfig.startDir ?? 1);
+          const body = platform.body as Phaser.Physics.Arcade.Body;
+          body.setAllowGravity(false);
+          body.setImmovable(true);
+          body.setSize(platformConfig.w, platformConfig.h, true);
+        });
+
+        layout.timedBridges?.forEach((bridgeConfig) => {
+          const bridge = this.timedBridgeGroup.create(bridgeConfig.x, bridgeConfig.y, biomeTheme.platformTop) as Phaser.Physics.Arcade.Sprite;
+          bridge.setDisplaySize(bridgeConfig.w, bridgeConfig.h);
+          bridge.setData('cycleMs', bridgeConfig.cycleMs);
+          bridge.setData('openMs', bridgeConfig.openMs);
+          const phaseMs = bridgeConfig.phaseMs ?? 0;
+          bridge.setData('phaseMs', phaseMs);
+          const cycleMs = bridgeConfig.cycleMs > 0 ? bridgeConfig.cycleMs : 2200;
+          const openMs = Phaser.Math.Clamp(bridgeConfig.openMs, 120, cycleMs - 120);
+          const initialOpen = (((this.time.now + phaseMs) % cycleMs + cycleMs) % cycleMs) < openMs;
+          bridge.setData('isOpen', initialOpen);
+          bridge.setAlpha(initialOpen ? 1 : 0.22);
+          bridge.refreshBody();
+          (bridge.body as Phaser.Physics.Arcade.StaticBody).enable = initialOpen;
+        });
+
+        layout.fireColumns?.forEach((columnConfig) => {
+          const flame = this.fireColumnGroup.create(columnConfig.x, columnConfig.y, 'fire-column') as Phaser.Physics.Arcade.Sprite;
+          flame.setDisplaySize(columnConfig.w, columnConfig.h);
+          const cycleMs = columnConfig.cycleMs > 0 ? columnConfig.cycleMs : 2200;
+          const activeMs = Phaser.Math.Clamp(columnConfig.activeMs, 120, cycleMs - 120);
+          const phaseMs = columnConfig.phaseMs ?? 0;
+          const active = (((this.time.now + phaseMs) % cycleMs + cycleMs) % cycleMs) < activeMs;
+          flame.setData('cycleMs', cycleMs);
+          flame.setData('activeMs', activeMs);
+          flame.setData('phaseMs', phaseMs);
+          flame.setData('hazardReason', '被烈焰喷口灼伤');
+          flame.setVisible(active);
+          const body = flame.body as Phaser.Physics.Arcade.Body;
+          body.setAllowGravity(false);
+          body.setImmovable(true);
+          body.enable = active;
+          body.setSize(Math.max(8, columnConfig.w - 6), Math.max(20, columnConfig.h - 8), true);
+        });
+
         this.enemies = this.physics.add.group({ allowGravity: false, immovable: true });
         this.arrowGroup = this.physics.add.group({ allowGravity: false });
         layout.enemies.forEach((enemyConfig) => {
@@ -1102,21 +1312,29 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           enemy.setData('lastDashAt', -99999);
           enemy.setData('nextHopAt', this.time.now + Phaser.Math.Between(180, 420));
           enemy.setData('nextFireAt', this.time.now + Phaser.Math.Between(600, 1200));
+          enemy.setData('strafeDir', Phaser.Math.Between(0, 1) ? 1 : -1);
+          enemy.setData('nextStrafeSwitchAt', this.time.now + Phaser.Math.Between(520, 920));
           enemy.setData('fuseState', 'idle');
+          enemy.setData('fuseElapsedMs', 0);
+          enemy.setData('fuseTickAt', this.time.now);
+          enemy.setData('aggroUntil', 0);
           enemy.setData('lastTeleportAt', -99999);
+          enemy.setData('teleporting', false);
+          enemy.setData('lastMoveX', enemyConfig.x);
+          enemy.setData('lastMoveAt', this.time.now);
           if (enemyKind === 'slime') {
             enemy.setDisplaySize(34, 24);
             enemy.setOrigin(0.5, 0.62);
             enemy.play('slime-hop');
           } else if (enemyKind === 'skeleton') {
-            enemy.setDisplaySize(38, 44);
+            enemy.setDisplaySize(40, 46);
             enemy.play('skeleton-walk');
           } else if (enemyKind === 'creeper') {
-            enemy.setDisplaySize(36, 40);
+            enemy.setDisplaySize(40, 44);
             enemy.play('creeper-walk');
           } else if (enemyKind === 'enderman') {
-            enemy.setDisplaySize(32, 52);
-            enemy.setOrigin(0.5, 0.55);
+            enemy.setDisplaySize(34, 58);
+            enemy.setOrigin(0.5, 0.6);
             enemy.play('enderman-walk');
           } else {
             enemy.setDisplaySize(40, 44);
@@ -1150,11 +1368,48 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         }, undefined, this);
 
         this.physics.add.collider(this.player, this.platforms);
+        this.physics.add.collider(this.player, this.movingPlatformGroup);
+        this.physics.add.collider(this.player, this.timedBridgeGroup);
         this.physics.add.collider(this.enemies, this.platforms);
+        this.physics.add.collider(this.enemies, this.movingPlatformGroup);
         if (this.boss) this.physics.add.collider(this.boss, this.platforms);
+        this.physics.add.collider(this.fallingRockGroup, this.platforms);
 
-        this.physics.add.overlap(this.player, this.hazards, () => this.applyHit('掉入危险区域'), undefined, this);
-        this.physics.add.overlap(this.player, this.enemies, () => this.applyHit('被怪物击中'), undefined, this);
+        this.physics.add.overlap(this.player, this.hazards, (_player, hazardObj) => {
+          const hazard = hazardObj as Phaser.Physics.Arcade.Sprite;
+          const reason = String(hazard.getData('hazardReason') || '掉入危险区域');
+          this.applyHit(reason);
+        }, undefined, this);
+        this.physics.add.overlap(this.player, this.fallingRockGroup, (_player, rockObj) => {
+          const rock = rockObj as Phaser.Physics.Arcade.Sprite;
+          if (!rock.active || !rock.visible) return;
+          this.applyHit('被落石砸中');
+          rock.setData('dropping', false);
+          rock.setData('nextDropAt', this.time.now + Number(rock.getData('intervalMs') || 1700));
+          rock.setVisible(false);
+          rock.setVelocity(0, 0);
+          (rock.body as Phaser.Physics.Arcade.Body).enable = false;
+        }, undefined, this);
+        this.physics.add.overlap(this.player, this.fireColumnGroup, (_player, flameObj) => {
+          const flame = flameObj as Phaser.Physics.Arcade.Sprite;
+          if (!flame.visible || !flame.active) return;
+          this.applyHit('被烈焰喷口灼伤');
+        }, undefined, this);
+        this.physics.add.overlap(this.player, this.enemies, (_player, enemyObj) => {
+          const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+          const kind = String(enemy.getData('type') || 'zombie') as EnemyKind;
+          if (kind === 'creeper') return;
+          if (kind === 'enderman') {
+            enemy.setData('aggroUntil', this.time.now + 6000);
+            this.applyHit('被末影人击中');
+            return;
+          }
+          if (kind === 'skeleton') {
+            this.applyHit('被骷髅击中');
+            return;
+          }
+          this.applyHit('被怪物击中');
+        }, undefined, this);
         if (this.boss) this.physics.add.overlap(this.player, this.boss, () => this.applyHit('被首领击中'), undefined, this);
         this.physics.add.overlap(this.player, this.goal, () => this.tryComplete(), undefined, this);
 
@@ -1174,7 +1429,8 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           backgroundColor: '#00000066',
           padding: { left: 6, right: 6, top: 2, bottom: 2 },
         }).setScrollFactor(0).setDepth(20);
-        const objectiveText = hasMineNodes ? '目标：开采 3 个矿块并抵达终点' : `目标：${level.objective}`;
+        const mineGoalCount = layout.mineNodes?.length ?? 0;
+        const objectiveText = hasMineNodes ? `目标：开采 ${mineGoalCount} 个矿块并抵达终点` : `目标：${level.objective}`;
         this.tipText = this.add.text(18, 44, objectiveText, {
           fontFamily: 'monospace',
           fontSize: '13px',
@@ -1335,7 +1591,28 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           if (Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y) < 80) {
             const eKind = String(enemy.getData('type') || 'zombie') as EnemyKind;
             if (eKind === 'enderman') {
+              enemy.setData('aggroUntil', now + 7000);
               let eHp = Number(enemy.getData('hp') || 2);
+              if (eHp > 1 && Phaser.Math.FloatBetween(0, 1) < 0.32) {
+                const baseX = Number(enemy.getData('baseX'));
+                const range = Number(enemy.getData('range'));
+                const tpOffset = Phaser.Math.Between(70, 130) * (Phaser.Math.Between(0, 1) ? 1 : -1);
+                const tpX = Phaser.Math.Clamp(this.player.x + tpOffset, baseX - range, baseX + range);
+                const tpY = this.player.y - Phaser.Math.Between(4, 14);
+                this.tweens.add({
+                  targets: enemy,
+                  alpha: 0.2,
+                  duration: 70,
+                  onComplete: () => {
+                    if (!enemy.active) return;
+                    enemy.setPosition(tpX, tpY);
+                    this.tweens.add({ targets: enemy, alpha: 1, duration: 100 });
+                  },
+                });
+                this.cameras.main.shake(45, 0.0016);
+                return;
+              }
+
               eHp -= 1;
               enemy.setData('hp', eHp);
               this.cameras.main.flash(70, 180, 120, 255, false);
@@ -1348,6 +1625,19 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
                 });
               } else {
                 enemy.setAlpha(0.7);
+                const baseX = Number(enemy.getData('baseX'));
+                const range = Number(enemy.getData('range'));
+                const flankX = Phaser.Math.Clamp(this.player.x + (this.facing > 0 ? -86 : 86), baseX - range, baseX + range);
+                this.tweens.add({
+                  targets: enemy,
+                  alpha: 0.2,
+                  duration: 75,
+                  onComplete: () => {
+                    if (!enemy.active) return;
+                    enemy.setPosition(flankX, this.player.y - 8);
+                    this.tweens.add({ targets: enemy, alpha: 0.7, duration: 95 });
+                  },
+                });
               }
             } else {
               this.tweens.add({
@@ -1429,7 +1719,7 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
         });
       }
 
-      update() {
+      update(_time: number, delta: number) {
         if (finished) return;
 
         if (this.player.y > layout.worldHeight + 80) {
@@ -1484,10 +1774,122 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           }
         });
 
+        const tickNow = this.time.now;
+        this.movingPlatformGroup.getChildren().forEach((entity) => {
+          const platform = entity as Phaser.Physics.Arcade.Sprite;
+          const axis = String(platform.getData('axis') || 'x');
+          const distance = Number(platform.getData('distance') || 120);
+          const speed = Number(platform.getData('speed') || 64);
+          const baseX = Number(platform.getData('baseX') || platform.x);
+          const baseY = Number(platform.getData('baseY') || platform.y);
+          let dir = Number(platform.getData('dir') || 1) >= 0 ? 1 : -1;
+          const minX = baseX - distance * 0.5;
+          const maxX = baseX + distance * 0.5;
+          const minY = baseY - distance * 0.5;
+          const maxY = baseY + distance * 0.5;
+
+          if (axis === 'y') {
+            if (platform.y <= minY + 2) dir = 1;
+            if (platform.y >= maxY - 2) dir = -1;
+            platform.setVelocity(0, dir * speed);
+          } else {
+            if (platform.x <= minX + 2) dir = 1;
+            if (platform.x >= maxX - 2) dir = -1;
+            platform.setVelocity(dir * speed, 0);
+          }
+          platform.setData('dir', dir);
+        });
+
+        this.timedBridgeGroup.getChildren().forEach((entity) => {
+          const bridge = entity as Phaser.Physics.Arcade.Sprite;
+          const cycleMsRaw = Number(bridge.getData('cycleMs') || 2200);
+          const cycleMs = cycleMsRaw > 0 ? cycleMsRaw : 2200;
+          const openMs = Phaser.Math.Clamp(Number(bridge.getData('openMs') || 900), 120, cycleMs - 120);
+          const phaseMs = Number(bridge.getData('phaseMs') || 0);
+          const cycleOffset = ((tickNow + phaseMs) % cycleMs + cycleMs) % cycleMs;
+          const isOpen = cycleOffset < openMs;
+          const wasOpen = Boolean(bridge.getData('isOpen'));
+          if (isOpen !== wasOpen) {
+            bridge.setData('isOpen', isOpen);
+            const body = bridge.body as Phaser.Physics.Arcade.StaticBody;
+            body.enable = isOpen;
+            bridge.setAlpha(isOpen ? 1 : 0.22);
+          }
+        });
+
+        this.fallingRockGroup.getChildren().forEach((entity) => {
+          const rock = entity as Phaser.Physics.Arcade.Sprite;
+          const body = rock.body as Phaser.Physics.Arcade.Body;
+          const dropping = Boolean(rock.getData('dropping'));
+          if (!dropping) {
+            const nextDropAt = Number(rock.getData('nextDropAt') || 0);
+            if (tickNow >= nextDropAt) {
+              const spawnX = Number(rock.getData('spawnX') || rock.x);
+              const spawnY = Number(rock.getData('spawnY') || rock.y);
+              const speed = Number(rock.getData('speed') || 290);
+              rock.setPosition(spawnX, spawnY);
+              rock.setVisible(true);
+              body.enable = true;
+              body.setVelocity(0, speed);
+              rock.setData('dropping', true);
+            }
+            return;
+          }
+
+          const dropToY = Number(rock.getData('dropToY') || layout.worldHeight - 80);
+          if (rock.y >= dropToY || body.blocked.down || body.touching.down) {
+            body.setVelocity(0, 0);
+            body.enable = false;
+            rock.setVisible(false);
+            rock.setData('dropping', false);
+            rock.setData('nextDropAt', tickNow + Number(rock.getData('intervalMs') || 1700) + Phaser.Math.Between(-180, 260));
+            for (let i = 0; i < 4; i += 1) {
+              const debris = this.add.rectangle(
+                rock.x + Phaser.Math.Between(-6, 6),
+                rock.y + Phaser.Math.Between(-4, 3),
+                3,
+                3,
+                Phaser.Math.RND.pick([0x6d747b, 0x8c949b, 0x454c52])
+              ).setDepth(8);
+              this.tweens.add({
+                targets: debris,
+                x: debris.x + Phaser.Math.Between(-18, 18),
+                y: debris.y + Phaser.Math.Between(-14, -4),
+                alpha: 0,
+                duration: 180 + i * 30,
+                onComplete: () => debris.destroy(),
+              });
+            }
+          }
+        });
+
+        this.fireColumnGroup.getChildren().forEach((entity) => {
+          const flame = entity as Phaser.Physics.Arcade.Sprite;
+          const cycleMsRaw = Number(flame.getData('cycleMs') || 2200);
+          const cycleMs = cycleMsRaw > 0 ? cycleMsRaw : 2200;
+          const activeMs = Phaser.Math.Clamp(Number(flame.getData('activeMs') || 800), 120, cycleMs - 120);
+          const phaseMs = Number(flame.getData('phaseMs') || 0);
+          const cycleOffset = ((tickNow + phaseMs) % cycleMs + cycleMs) % cycleMs;
+          const active = cycleOffset < activeMs;
+          const body = flame.body as Phaser.Physics.Arcade.Body;
+          body.enable = active;
+          flame.setVisible(active);
+          if (active) {
+            flame.setAlpha(Math.floor(tickNow / 90) % 2 === 0 ? 0.95 : 0.78);
+          }
+        });
+
+        this.arrowGroup.getChildren().forEach((entity) => {
+          const arrow = entity as Phaser.Physics.Arcade.Sprite;
+          const lifespan = Number(arrow.getData('lifespan') || 0);
+          if (lifespan > 0 && tickNow > lifespan) arrow.destroy();
+        });
+
         this.enemies.getChildren().forEach((entity) => {
           const enemy = entity as Phaser.Physics.Arcade.Sprite;
           const enemyBody = enemy.body as Phaser.Physics.Arcade.Body;
           const now = this.time.now;
+          const frameDeltaMs = Number.isFinite(delta) ? Phaser.Math.Clamp(delta, 0, 120) : 16;
           const kind = String(enemy.getData('type') || 'zombie') as EnemyKind;
           const baseX = Number(enemy.getData('baseX'));
           const range = Number(enemy.getData('range'));
@@ -1495,6 +1897,8 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
           const aggroRange = Number(enemy.getData('aggroRange') || 0);
           const leftBound = baseX - range;
           const rightBound = baseX + range;
+          let patrolLeft = leftBound;
+          let patrolRight = rightBound;
           let velocityX = enemyBody.velocity.x;
 
           if (kind === 'slime') {
@@ -1521,23 +1925,56 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             const bob = Math.sin((now + enemy.x) * 0.012);
             enemy.setScale(1 + Math.abs(bob) * 0.08, 1 - Math.abs(bob) * 0.05);
           } else if (kind === 'skeleton') {
+            const dx = this.player.x - enemy.x;
+            const dy = this.player.y - enemy.y;
+            const absDx = Math.abs(dx);
             const nearPlayer =
               aggroRange > 0 &&
-              Math.abs(this.player.x - enemy.x) <= aggroRange &&
-              Math.abs(this.player.y - enemy.y) <= 80;
+              absDx <= aggroRange &&
+              Math.abs(dy) <= 120;
             if (nearPlayer) {
-              enemy.setVelocityX(0);
               const fireIntervalMs = Number(enemy.getData('fireIntervalMs') || 1500);
               const nextFireAt = Number(enemy.getData('nextFireAt') || 0);
+              const currentStrafeDir = Number(enemy.getData('strafeDir') || 1);
+              let strafeDir: -1 | 1 = currentStrafeDir >= 0 ? 1 : -1;
+              const nextStrafeSwitchAt = Number(enemy.getData('nextStrafeSwitchAt') || 0);
+              if (now >= nextStrafeSwitchAt) {
+                strafeDir = strafeDir === 1 ? -1 : 1;
+                enemy.setData('strafeDir', strafeDir);
+                enemy.setData('nextStrafeSwitchAt', now + Phaser.Math.Between(540, 980));
+              }
+
+              if (absDx < 96) {
+                velocityX = dx > 0 ? -baseSpeed * 1.25 : baseSpeed * 1.25;
+              } else if (absDx > 210) {
+                velocityX = dx > 0 ? baseSpeed * 1.05 : -baseSpeed * 1.05;
+              } else {
+                velocityX = strafeDir * baseSpeed * 0.72;
+              }
+
               if (now >= nextFireAt) {
-                enemy.setData('nextFireAt', now + fireIntervalMs + Phaser.Math.Between(-200, 200));
-                const arrow = this.arrowGroup.create(enemy.x, enemy.y - 6, 'arrow') as Phaser.Physics.Arcade.Sprite;
-                arrow.setDisplaySize(16, 6);
+                enemy.setData('nextFireAt', now + fireIntervalMs + Phaser.Math.Between(-160, 220));
+                const arrow = this.arrowGroup.create(enemy.x, enemy.y - 8, 'arrow') as Phaser.Physics.Arcade.Sprite;
+                arrow.setDisplaySize(18, 6);
                 const projectileSpeed = Number(enemy.getData('projectileSpeed') || 220);
-                arrow.setVelocityX(this.player.x >= enemy.x ? projectileSpeed : -projectileSpeed);
-                arrow.setFlipX(this.player.x < enemy.x);
-                arrow.setData('lifespan', now + 1800);
-                this.cameras.main.shake(40, 0.001);
+                const targetX = this.player.x;
+                const targetY = this.player.y - 12;
+                const aim = new Phaser.Math.Vector2(targetX - enemy.x, targetY - (enemy.y - 8));
+                if (aim.lengthSq() < 1) {
+                  aim.set(1, 0);
+                } else {
+                  aim.normalize();
+                }
+                const arrowBody = arrow.body as Phaser.Physics.Arcade.Body;
+                arrowBody.setAllowGravity(false);
+                arrowBody.setGravityY(0);
+                const vx = aim.x * projectileSpeed;
+                const vy = aim.y * projectileSpeed;
+                arrow.setVelocity(vx, vy);
+                arrow.setAngle((Math.atan2(vy, vx) * 180) / Math.PI);
+                arrow.setFlipX(vx < 0);
+                arrow.setData('lifespan', now + 2100);
+                this.cameras.main.shake(42, 0.0011);
               }
             } else if (Math.abs(velocityX) < 12) {
               velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
@@ -1546,125 +1983,196 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             }
             enemy.setScale(1, 1);
           } else if (kind === 'creeper') {
+            const dxToPlayer = this.player.x - enemy.x;
+            const dyToPlayer = this.player.y - enemy.y;
             const nearPlayer =
               aggroRange > 0 &&
-              Math.abs(this.player.x - enemy.x) <= aggroRange &&
-              Math.abs(this.player.y - enemy.y) <= 70;
+              Math.abs(dxToPlayer) <= aggroRange &&
+              Math.abs(dyToPlayer) <= 70;
             const inFuseRange =
               aggroRange > 0 &&
-              Math.abs(this.player.x - enemy.x) <= 55 &&
-              Math.abs(this.player.y - enemy.y) <= 50;
-            const fuseState = String(enemy.getData('fuseState') || 'idle');
-            if (inFuseRange) {
-              if (fuseState === 'idle') {
-                enemy.setData('fuseState', 'fusing');
-                enemy.setData('fuseStartedAt', now);
-              }
-              enemy.setTint(Math.floor(now / 100) % 2 === 0 ? 0xff4444 : 0xffffff);
-              enemy.x += Phaser.Math.Between(-2, 2);
-              enemy.y += Phaser.Math.Between(-1, 1);
-              const fuseStartedAt = Number(enemy.getData('fuseStartedAt') || now);
-              const fuseTimeMs = Number(enemy.getData('fuseTimeMs') || 1300);
-              const progress = (now - fuseStartedAt) / fuseTimeMs;
-              enemy.setScale(1 + progress * 0.25, 1 - progress * 0.12);
-              if (now - fuseStartedAt >= fuseTimeMs) {
-                const explosionRadius = Number(enemy.getData('explosionRadius') || 90);
-                const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y);
-                if (dist <= explosionRadius) {
-                  this.hearts -= 2;
-                  if (this.hearts < 0) this.hearts = 0;
-                  const knockAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
-                  this.player.setVelocity(Math.cos(knockAngle) * 350, Math.min(Math.sin(knockAngle) * 280, -200));
-                  this.hits += 2;
-                  this.lastHitAt = now;
-                  this.player.setTint(0xff7070);
-                  this.time.delayedCall(120, () => this.player.clearTint());
-                  callbacksRef.current.onAction('hit');
-                  callbacksRef.current.onAction('hit');
-                  this.refreshHud();
-                  if (this.hearts <= 0) {
-                    finished = true;
-                    callbacksRef.current.onAction('lose');
-                    callbacksRef.current.onFail('被苦力怕炸伤');
-                  }
-                }
-                for (let p = 0; p < 10; p++) {
-                  const pAngle = (p / 10) * Math.PI * 2;
-                  const pDist = Phaser.Math.Between(20, 55);
-                  const px = enemy.x + Math.cos(pAngle) * pDist * 0.4;
-                  const py = enemy.y + Math.sin(pAngle) * pDist * 0.4;
-                  const particle = this.add.circle(px, py, Phaser.Math.Between(3, 8), 0xff8844, 1);
-                  particle.setDepth(5);
-                  this.tweens.add({
-                    targets: particle,
-                    x: enemy.x + Math.cos(pAngle) * pDist,
-                    y: enemy.y + Math.sin(pAngle) * pDist - Phaser.Math.Between(10, 30),
-                    alpha: 0,
-                    scale: 2.5,
-                    duration: Phaser.Math.Between(350, 600),
-                    ease: 'Quad.easeOut',
-                    onComplete: () => particle.destroy(),
-                  });
-                }
-                this.cameras.main.shake(200, 0.01);
-                this.cameras.main.flash(160, 255, 200, 100);
-                enemy.destroy();
-                return;
-              }
-              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.3 : -baseSpeed * 1.3;
-            } else if (nearPlayer) {
-              if (fuseState === 'fusing') {
-                enemy.setData('fuseState', 'idle');
-                enemy.clearTint();
-                enemy.setScale(1, 1);
-              }
-              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.15 : -baseSpeed * 1.15;
-              enemy.setScale(1, 1);
+              Math.abs(dxToPlayer) <= 54 &&
+              Math.abs(dyToPlayer) <= 52;
+            const inFuseHoldRange =
+              aggroRange > 0 &&
+              Math.abs(dxToPlayer) <= 66 &&
+              Math.abs(dyToPlayer) <= 62;
+            const fuseTimeMsRaw = Number(enemy.getData('fuseTimeMs') || 1300);
+            const fuseTimeMs = Number.isFinite(fuseTimeMsRaw) && fuseTimeMsRaw > 0 ? fuseTimeMsRaw : 1300;
+            let fuseElapsedMs = Number(enemy.getData('fuseElapsedMs') || 0);
+            const isPrimed = fuseElapsedMs > 0.01;
+            const shouldContinueFusing = inFuseRange || (isPrimed && inFuseHoldRange);
+
+            if (shouldContinueFusing) {
+              enemy.setData('fuseState', 'fusing');
+              fuseElapsedMs = Math.min(fuseTimeMs, fuseElapsedMs + frameDeltaMs);
+              velocityX = 0;
+              enemy.setTint(Math.floor(now / 95) % 2 === 0 ? 0xc8ffb0 : 0xffffff);
             } else {
-              if (fuseState === 'fusing') {
+              const fuseDecayPerMs = nearPlayer ? 0.9 : 1.6;
+              fuseElapsedMs = Math.max(0, fuseElapsedMs - frameDeltaMs * fuseDecayPerMs);
+              if (fuseElapsedMs <= 0.01) {
                 enemy.setData('fuseState', 'idle');
                 enemy.clearTint();
+              } else {
+                enemy.setData('fuseState', 'cooling');
+                enemy.setTint(Math.floor(now / 130) % 2 === 0 ? 0xe8ffda : 0xffffff);
               }
-              if (Math.abs(velocityX) < 12) {
+
+              if (nearPlayer) {
+                velocityX = dxToPlayer >= 0 ? baseSpeed * 1.05 : -baseSpeed * 1.05;
+              } else if (Math.abs(velocityX) < 12) {
                 velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
               } else {
                 velocityX = Math.sign(velocityX) * baseSpeed;
               }
+            }
+
+            enemy.setData('fuseElapsedMs', fuseElapsedMs);
+            const fuseProgress = Phaser.Math.Clamp(fuseElapsedMs / fuseTimeMs, 0, 1);
+            if (fuseProgress > 0) {
+              enemy.setScale(1 + fuseProgress * 0.28, 1 - fuseProgress * 0.12);
+            } else {
               enemy.setScale(1, 1);
             }
+
+            if (fuseElapsedMs >= fuseTimeMs) {
+              const explosionRadius = Number(enemy.getData('explosionRadius') || 90);
+              const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+              if (dist <= explosionRadius) {
+                this.hearts -= 2;
+                if (this.hearts < 0) this.hearts = 0;
+                const knockAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+                this.player.setVelocity(Math.cos(knockAngle) * 350, Math.min(Math.sin(knockAngle) * 280, -200));
+                this.hits += 2;
+                this.lastHitAt = now;
+                this.player.setTint(0xff7070);
+                this.time.delayedCall(120, () => this.player.clearTint());
+                callbacksRef.current.onAction('hit');
+                callbacksRef.current.onAction('hit');
+                this.refreshHud();
+                if (this.hearts <= 0) {
+                  finished = true;
+                  callbacksRef.current.onAction('lose');
+                  callbacksRef.current.onFail('被苦力怕炸伤');
+                }
+              }
+              for (let p = 0; p < 10; p++) {
+                const pAngle = (p / 10) * Math.PI * 2;
+                const pDist = Phaser.Math.Between(20, 55);
+                const px = enemy.x + Math.cos(pAngle) * pDist * 0.4;
+                const py = enemy.y + Math.sin(pAngle) * pDist * 0.4;
+                const particle = this.add.circle(px, py, Phaser.Math.Between(3, 8), 0xff8844, 1);
+                particle.setDepth(5);
+                this.tweens.add({
+                  targets: particle,
+                  x: enemy.x + Math.cos(pAngle) * pDist,
+                  y: enemy.y + Math.sin(pAngle) * pDist - Phaser.Math.Between(10, 30),
+                  alpha: 0,
+                  scale: 2.5,
+                  duration: Phaser.Math.Between(350, 600),
+                  ease: 'Quad.easeOut',
+                  onComplete: () => particle.destroy(),
+                });
+              }
+              this.cameras.main.shake(200, 0.01);
+              this.cameras.main.flash(160, 255, 200, 100);
+              enemy.destroy();
+              return;
+            }
           } else if (kind === 'enderman') {
+            const lookedByPlayer =
+              Math.abs(this.player.y - enemy.y) <= 90 &&
+              Math.abs(this.player.x - enemy.x) <= Math.min(320, Math.max(aggroRange, 220)) &&
+              ((this.facing > 0 && enemy.x > this.player.x) || (this.facing < 0 && enemy.x < this.player.x));
+            if (lookedByPlayer) {
+              enemy.setData('aggroUntil', now + 4800);
+            }
+            const aggroUntil = Number(enemy.getData('aggroUntil') || 0);
+            const isAggro = now <= aggroUntil;
             const nearPlayer =
               aggroRange > 0 &&
               Math.abs(this.player.x - enemy.x) <= aggroRange;
+            if (isAggro) {
+              patrolLeft = Math.max(24, Math.min(leftBound, this.player.x - 220));
+              patrolRight = Math.min(layout.worldWidth - 24, Math.max(rightBound, this.player.x + 220));
+            }
             const teleportIntervalMs = Number(enemy.getData('teleportIntervalMs') || 3500);
             const lastTeleportAt = Number(enemy.getData('lastTeleportAt') || -99999);
-            if (nearPlayer && now - lastTeleportAt >= teleportIntervalMs) {
+            const teleporting = Boolean(enemy.getData('teleporting'));
+            let teleportedThisFrame = false;
+            const performTeleport = (targetX: number, targetY: number) => {
+              teleportedThisFrame = true;
               enemy.setData('lastTeleportAt', now);
-              const tpBehind = this.player.x + (this.facing > 0 ? -80 : 80);
-              const clampedX = Phaser.Math.Clamp(tpBehind, leftBound, rightBound);
+              enemy.setData('teleporting', true);
+              this.tweens.killTweensOf(enemy);
               this.tweens.add({
                 targets: enemy,
-                alpha: 0,
-                duration: 100,
+                alpha: 0.1,
+                duration: 90,
                 onComplete: () => {
                   if (!enemy.active) return;
-                  enemy.setPosition(clampedX, this.player.y - 10);
-                  this.tweens.add({ targets: enemy, alpha: 1, duration: 120 });
-                  this.cameras.main.shake(60, 0.002);
+                  enemy.setPosition(targetX, targetY);
+                  enemyBody.reset(targetX, targetY);
+                  enemy.setData('lastMoveX', targetX);
+                  enemy.setData('lastMoveAt', this.time.now);
+                  this.tweens.add({
+                    targets: enemy,
+                    alpha: isAggro ? 1 : 0.82,
+                    duration: 115,
+                    onComplete: () => {
+                      if (!enemy.active) return;
+                      enemy.setData('teleporting', false);
+                    },
+                  });
+                  this.cameras.main.shake(60, 0.0022);
                 },
               });
+              this.time.delayedCall(380, () => {
+                if (!enemy.active) return;
+                if (enemy.getData('teleporting')) enemy.setData('teleporting', false);
+              });
+            };
+            if (nearPlayer && !teleporting && now - lastTeleportAt >= teleportIntervalMs) {
+              const behindOffset = (this.facing > 0 ? -1 : 1) * Phaser.Math.Between(84, 112);
+              let tpBehindX = this.player.x + behindOffset;
+              if (tpBehindX < patrolLeft + 8 || tpBehindX > patrolRight - 8) {
+                tpBehindX = this.player.x + (this.player.x >= enemy.x ? -92 : 92);
+              }
+              const clampedX = Phaser.Math.Clamp(tpBehindX, patrolLeft + 8, patrolRight - 8);
+              const targetY = enemy.y;
+              performTeleport(clampedX, targetY);
             }
-            if (nearPlayer) {
-              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.25 : -baseSpeed * 1.25;
+
+            if (isAggro && nearPlayer) {
+              velocityX = this.player.x >= enemy.x ? baseSpeed * 1.38 : -baseSpeed * 1.38;
             } else if (Math.abs(velocityX) < 12) {
-              velocityX = baseSpeed * (Phaser.Math.Between(0, 1) ? 1 : -1);
+              velocityX = baseSpeed * 0.82 * (Phaser.Math.Between(0, 1) ? 1 : -1);
             } else {
-              velocityX = Math.sign(velocityX) * baseSpeed;
+              velocityX = Math.sign(velocityX) * baseSpeed * (isAggro ? 1.1 : 0.82);
+            }
+
+            const lastMoveX = Number(enemy.getData('lastMoveX') || enemy.x);
+            if (Math.abs(enemy.x - lastMoveX) > 1.2) {
+              enemy.setData('lastMoveX', enemy.x);
+              enemy.setData('lastMoveAt', now);
+            } else {
+              const lastMoveAt = Number(enemy.getData('lastMoveAt') || now);
+              const blockedHoriz = enemyBody.blocked.left || enemyBody.blocked.right || enemyBody.embedded;
+              if (nearPlayer && !teleporting && !teleportedThisFrame && blockedHoriz && now - lastMoveAt > 520) {
+                const rescueBehindX = Phaser.Math.Clamp(
+                  this.player.x + (this.facing > 0 ? -96 : 96),
+                  patrolLeft + 10,
+                  patrolRight - 10
+                );
+                performTeleport(rescueBehindX, enemy.y);
+                velocityX = this.player.x >= rescueBehindX ? baseSpeed * 1.2 : -baseSpeed * 1.2;
+              }
             }
             const eHp = Number(enemy.getData('hp') || 2);
-            const targetAlpha = eHp <= 1 ? 0.7 : 1;
+            const targetAlpha = eHp <= 1 ? (isAggro ? 0.9 : 0.72) : (isAggro ? 1 : 0.82);
             enemy.setAlpha(targetAlpha);
-            enemy.setScale(1, 1);
+            enemy.setScale(isAggro ? 1.03 : 1);
           } else {
             const dashSpeed = Number(enemy.getData('dashSpeed') || baseSpeed * 2.2);
             const dashDurationMs = Number(enemy.getData('dashDurationMs') || 220);
@@ -1693,8 +2201,8 @@ function PhaserRunner({ level, sessionId, onComplete, onFail, onCheckpoint, onAc
             enemy.setScale(1, 1);
           }
 
-          if (enemy.x < leftBound) velocityX = Math.abs(baseSpeed);
-          if (enemy.x > rightBound) velocityX = -Math.abs(baseSpeed);
+          if (enemy.x < patrolLeft) velocityX = Math.abs(baseSpeed);
+          if (enemy.x > patrolRight) velocityX = -Math.abs(baseSpeed);
           enemy.setVelocityX(velocityX);
           enemy.setFlipX(velocityX < 0);
         });

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Cloud sync via the standalone Node sync API.
 // Keeps the rest of the app untouched: pass state in, the hook will:
@@ -21,6 +21,14 @@ function getApiBase(): string {
     if (typeof fromWin === "string" && fromWin) return fromWin.replace(/\/+$/, "");
     const fromLs = localStorage.getItem(BASE_KEY);
     if (fromLs) return fromLs.replace(/\/+$/, "");
+    // Smart defaults: pick a reasonable API host for known deployments.
+    try {
+      const host = window.location.hostname;
+      const proto = window.location.protocol;
+      if (host === "mc.shuzili.ren" || host === "192.168.1.12") {
+        return proto === "https:" ? "https://api.shuzili.ren" : "http://192.168.1.12:8787";
+      }
+    } catch {}
   }
   return "/api";
 }

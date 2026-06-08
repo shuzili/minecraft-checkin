@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { UserManager } from '@/components/UserManager';
 import { ProjectManager } from '@/components/ProjectManager';
 import { CheckInPanel } from '@/components/CheckInPanel';
@@ -12,6 +12,7 @@ import { AchievementSystem } from '@/components/AchievementSystem';
 import { DailyChallenges } from '@/components/DailyChallenges';
 import { GameMode } from '@/components/GameMode';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useCloudSync } from '@/hooks/useCloudSync';
 import { useSound } from '@/hooks/useSound';
 import {
   Users,
@@ -22,6 +23,7 @@ import {
   ShoppingCart,
   AlertTriangle,
   Volume2,
+  Cloud,
   VolumeX,
   Pickaxe,
   Database,
@@ -36,6 +38,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CloudSyncDialog } from '@/components/CloudSyncDialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import './App.css';
 
@@ -100,6 +103,8 @@ function App() {
     failLevel,
     saveCheckpoint
   } = useLocalStorage();
+  const cloud = useCloudSync(state, isLoaded);
+  useEffect(() => { if (cloud.lastError) console.warn('[cloud]', cloud.lastError); }, [cloud.lastError]);
 
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('soundEnabled');
@@ -108,6 +113,7 @@ function App() {
   const { play } = useSound(soundEnabled);
   const [activeTab, setActiveTab] = useState<ExtendedTabType>('game');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cloudOpen, setCloudOpen] = useState(false);
   const [isBattleLocked, setIsBattleLocked] = useState(false);
 
   useEffect(() => {
@@ -346,6 +352,19 @@ function App() {
               >
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { setCloudOpen(true); play('click'); }}
+                className="text-white hover:bg-white/10 w-9 h-9 relative"
+                title={cloud.auth ? `云端已登录：${cloud.auth.displayName || cloud.auth.username}` : '云端同步'}
+              >
+                <Cloud className="w-5 h-5" />
+                {cloud.auth && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-minecraft-emerald ring-2 ring-minecraft-dirt" />
+                )}
+              </Button>
               
               {/* 绉诲姩绔彍鍗曟寜閽?*/}
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -505,6 +524,21 @@ function App() {
       </main>
 
       {/* 绉诲姩绔簳閮ㄥ鑸?*/}
+
+      <CloudSyncDialog
+        open={cloudOpen}
+        onOpenChange={setCloudOpen}
+        auth={cloud.auth}
+        status={cloud.status}
+        lastError={cloud.lastError}
+        lastSyncedAt={cloud.lastSyncedAt}
+        apiBase={cloud.apiBase}
+        onLogin={cloud.login}
+        onRegister={cloud.register}
+        onLogout={cloud.logout}
+        onPushNow={cloud.pushNow}
+        onSetApiBase={cloud.setApiBase}
+      />
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 minecraft-header border-t-4 border-minecraft-wood">
         <div className="grid grid-cols-5 gap-1 p-2 pb-2">
           {/* 鍙樉绀哄父鐢ㄥ姛鑳?*/}

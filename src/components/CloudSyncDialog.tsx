@@ -182,8 +182,11 @@ export function CloudSyncDialog({
             </div>
 
             {lastError && (
-              <div className="rounded border-2 border-red-500/50 bg-red-500/10 p-2 text-xs font-pixel text-red-300">
-                {lastError}
+              <div className="rounded border-2 border-red-500/50 bg-red-500/10 p-2 text-xs font-pixel text-red-300 space-y-1">
+                <div>{lastError}</div>
+                {String(lastError).toLowerCase().includes("unauthorized") && (
+                  <div className="text-minecraft-stone">点下方"重置"按钮可清空错误的 API 地址。</div>
+                )}
               </div>
             )}
 
@@ -205,15 +208,6 @@ export function CloudSyncDialog({
               >
                 <LogOut className="w-4 h-4 mr-1" />
                 退出
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => { onSetApiBase(""); window.location.reload(); }}
-                className="minecraft-btn border-minecraft-stone text-minecraft-stone px-2"
-                title="清空自定义 API 地址"
-              >
-                重置
               </Button>
             </div>
           </div>
@@ -342,6 +336,15 @@ export function CloudSyncDialog({
               className="minecraft-btn border-minecraft-diamond text-minecraft-diamond"
             >
               保存
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { onSetApiBase(""); window.location.reload(); }}
+              className="minecraft-btn border-minecraft-stone text-minecraft-stone"
+              title="清空自定义 API 地址，恢复智能默认"
+            >
+              重置
             </Button>
           </div>
           <p className="font-pixel text-minecraft-stone/60 text-[10px]">

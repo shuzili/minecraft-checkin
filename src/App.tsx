@@ -106,6 +106,24 @@ function App() {
   const cloud = useCloudSync(state, isLoaded);
   useEffect(() => { if (cloud.lastError) console.warn('[cloud]', cloud.lastError); }, [cloud.lastError]);
 
+  // Auto-pull from cloud on first successful login. If cloud has data and local is empty, apply it.
+  useEffect(() => {
+    if (!cloud.auth) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const s = await cloud.pull();
+        if (!cancelled && s && typeof s === 'object') {
+          if (state.users.length === 0) {
+            importState(s as any);
+          }
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloud.auth?.userId]);
+
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('soundEnabled');
     return saved !== null ? saved === 'true' : true;
@@ -537,6 +555,8 @@ function App() {
         onRegister={cloud.register}
         onLogout={cloud.logout}
         onPushNow={cloud.pushNow}
+        onPull={cloud.pull}
+        onApplyCloudState={(s: unknown) => importState(s as any)}
         onSetApiBase={cloud.setApiBase}
       />
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 minecraft-header border-t-4 border-minecraft-wood">

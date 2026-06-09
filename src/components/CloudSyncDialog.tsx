@@ -21,6 +21,8 @@ export interface CloudSyncDialogProps {
   onRegister: (username: string, password: string, displayName?: string) => Promise<unknown>;
   onLogout: () => void;
   onPushNow: () => Promise<void>;
+  onPull: () => Promise<unknown>;
+  onApplyCloudState: (state: unknown) => void;
   onSetApiBase: (base: string) => void;
 }
 
@@ -46,6 +48,8 @@ export function CloudSyncDialog({
   onRegister,
   onLogout,
   onPushNow,
+  onPull,
+  onApplyCloudState,
   onSetApiBase,
 }: CloudSyncDialogProps) {
   const { play } = useSound();
@@ -130,6 +134,25 @@ export function CloudSyncDialog({
     }
   };
 
+  const handlePull = async () => {
+    if (!window.confirm('拉取会用云端数据覆盖本地当前状态，确定吗？')) return;
+    setBusy(true);
+    setFormError(null);
+    try {
+      const s = await onPull();
+      if (s && typeof s === 'object') {
+        onApplyCloudState(s);
+        play('success');
+      } else {
+        setFormError('云端暂无保存的数据');
+      }
+    } catch (e: any) {
+      setFormError(e?.message || '拉取失败');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const saveApiBase = () => {
     onSetApiBase(apiBaseInput.trim());
     play('click');
@@ -190,7 +213,7 @@ export function CloudSyncDialog({
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 size="sm"
                 onClick={handlePush}
@@ -199,6 +222,16 @@ export function CloudSyncDialog({
               >
                 <RefreshCw className={`w-4 h-4 mr-1 ${busy || status === 'syncing' ? 'animate-spin' : ''}`} />
                 立即同步
+              </Button>
+              <Button
+                size="sm"
+                onClick={handlePull}
+                disabled={busy}
+                className="minecraft-btn bg-minecraft-diamond hover:bg-minecraft-diamond/90 flex-1"
+                title="从云端拉取最新数据，会覆盖本地"
+              >
+                <Cloud className="w-4 h-4 mr-1" />
+                拉取云端
               </Button>
               <Button
                 size="sm"

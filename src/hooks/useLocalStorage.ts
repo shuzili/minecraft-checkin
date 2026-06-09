@@ -852,6 +852,10 @@ export function useLocalStorage() {
         if (saved) {
           const parsed = JSON.parse(saved);
           if (!parsed.schemaVersion || parsed.schemaVersion !== APP_SCHEMA_VERSION) {
+            // Save the old data to a recovery slot before resetting
+            try {
+              localStorage.setItem('mc-checkin-recovery-v1', saved);
+            } catch {}
             const reset = getDefaultState();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reset));
             setState(reset);

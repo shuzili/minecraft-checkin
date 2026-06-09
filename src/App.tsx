@@ -106,6 +106,35 @@ function App() {
   const cloud = useCloudSync(state, isLoaded);
   useEffect(() => { if (cloud.lastError) console.warn('[cloud]', cloud.lastError); }, [cloud.lastError]);
 
+  // Detect leftover recovery slot and offer to restore.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('mc-checkin-recovery-v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const usersCount = (parsed && parsed.users) ? parsed.users.length : 0;
+        setRecoveryPrompt(`检测到旧版本数据（${usersCount} 个用户），是否恢复？`);
+      }
+    } catch {}
+  }, [isLoaded]);
+
+  const applyRecovery = () => {
+    try {
+      const raw = localStorage.getItem('mc-checkin-recovery-v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        importState(parsed);
+        localStorage.removeItem('mc-checkin-recovery-v1');
+        setRecoveryPrompt(null);
+      }
+    } catch {}
+  };
+
+  const dismissRecovery = () => {
+    try { localStorage.removeItem('mc-checkin-recovery-v1'); } catch {}
+    setRecoveryPrompt(null);
+  };
+
   // Auto-pull from cloud on first successful login. If cloud has data and local is empty, apply it.
   useEffect(() => {
     if (!cloud.auth) return;
@@ -132,6 +161,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<ExtendedTabType>('game');
   const [menuOpen, setMenuOpen] = useState(false);
   const [cloudOpen, setCloudOpen] = useState(false);
+  const [recoveryPrompt, setRecoveryPrompt] = useState<string | null>(null);
   const [isBattleLocked, setIsBattleLocked] = useState(false);
 
   useEffect(() => {
@@ -453,6 +483,15 @@ function App() {
       </div>
 
       {/* 涓诲唴瀹?*/}
+      {recoveryPrompt && (
+        <div className="bg-minecraft-gold/20 border-2 border-minecraft-gold rounded-lg p-3 mx-4 mt-3 flex items-center justify-between gap-3">
+          <div className="font-pixel text-sm text-white">{recoveryPrompt}</div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={applyRecovery} className="minecraft-btn bg-minecraft-emerald hover:bg-minecraft-emerald/90 text-white">恢复</Button>
+            <Button size="sm" variant="outline" onClick={dismissRecovery} className="minecraft-btn border-minecraft-stone text-minecraft-stone">丢弃</Button>
+          </div>
+        </div>
+      )}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-4 pb-24 lg:pb-6">
         {showPreview && (
           <div className="preview-mode-panel mb-4 p-4 rounded-xl border-2 border-minecraft-diamond/60">

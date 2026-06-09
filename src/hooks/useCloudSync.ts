@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 
 // Cloud sync via the standalone Node sync API.
 // Keeps the rest of the app untouched: pass state in, the hook will:
@@ -18,23 +18,34 @@ const BASE_KEY = "mc-cloud-api-base-v1";
 function getApiBase(): string {
   if (typeof window !== "undefined") {
     const fromWin = (window as any).__SYNC_API_BASE__;
-    if (typeof fromWin === "string" && fromWin) return fromWin.replace(/\/+$/, "");
+    if (typeof fromWin === "string" && fromWin) return normalizeApiBase(fromWin);
     const fromLs = localStorage.getItem(BASE_KEY);
-    if (fromLs) return fromLs.replace(/\/+$/, "");
+    if (fromLs) return normalizeApiBase(fromLs);
     // Smart defaults: pick a reasonable API host for known deployments.
     try {
       const host = window.location.hostname;
       const proto = window.location.protocol;
       if (host === "mc.shuzili.ren" || host === "192.168.1.12") {
-        return proto === "https:" ? "https://api.shuzili.ren" : "http://192.168.1.12:8787";
+        return proto === "https:" ? "https://api.shuzili.ren/api" : "http://192.168.1.12:8787/api";
       }
       // Netlify deployment — still route to the NAS sync API
       if (host.endsWith(".netlify.app")) {
-        return "https://api.shuzili.ren";
+        return "https://api.shuzili.ren/api";
       }
     } catch {}
   }
   return "/api";
+}
+
+// Normalize a user-supplied API base:
+//  - strip trailing slashes
+//  - if it looks like a full URL (has http/https) and doesn't end with /api, append /api
+function normalizeApiBase(raw: string): string {
+  let s = raw.replace(/\/+$/, "");
+  if (/^https?:\/\//.test(s) && !/\/api(\?.*)?$/.test(s)) {
+    s = s + "/api";
+  }
+  return s;
 }
 
 function loadAuth(): CloudAuth | null {

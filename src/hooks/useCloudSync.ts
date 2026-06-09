@@ -70,7 +70,11 @@ export function useCloudSync<T extends object>(state: T, isLoaded: boolean) {
   const [status, setStatus] = useState<"idle" | "syncing" | "synced" | "error" | "offline">("idle");
   const [lastError, setLastError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [serverUpdatedAt, setServerUpdatedAt] = useState<number | null>(null);
+  const [conflict, setConflict] = useState<{ serverUpdatedAt: number; localUpdatedAt: number } | null>(null);
   const timerRef = useRef<number | null>(null);
+  const lastSyncedAtRef = useRef<number | null>(null);
+  lastSyncedAtRef.current = lastSyncedAt;
   const latestStateRef = useRef<T>(state);
   latestStateRef.current = state;
 
@@ -132,7 +136,20 @@ export function useCloudSync<T extends object>(state: T, isLoaded: boolean) {
     setStatus("idle"); setLastSyncedAt(null);
   }, []);
 
-  const pushNow = useCallback(async () => {
+  // GET /api/load and return both state and updatedAt.
+  const getMeta = useCallback(async (): Promise<{ state: T | null; updatedAt: number }> => {
+    if (!auth) return { state: null, updatedAt: 0 };
+    const res = await fetch(`${apiBase}/load`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    const json = await res.json().catch(() => ({} as any));
+    if (!res.ok || !json.ok) throw new Error(json.message || `HTTP ${res.status}`);
+    return { state: (json.state ?? null) as T | null, updatedAt: Number(json.updatedAt || 0) };
+  }, [auth, apiBase]);
+
+  // Force push: skip the conflict preflight. Caller is acknowledging overwrite.
+  const forcePush = useCallback(async () => {
     if (!auth) return;
     setStatus("syncing");
     try {
@@ -143,12 +160,48 @@ export function useCloudSync<T extends object>(state: T, isLoaded: boolean) {
       });
       const json = await res.json().catch(() => ({} as any));
       if (!res.ok || !json.ok) throw new Error(json.message || `HTTP ${res.status}`);
-      setLastSyncedAt(Date.now());
+      const serverTs = Number(json.updatedAt || Date.now());
+      setLastSyncedAt(serverTs);
+      setServerUpdatedAt(serverTs);
+      setConflict(null);
       setStatus("synced");
     } catch (e: any) {
       setStatus("error"); setLastError(e?.message || String(e));
     }
   }, [auth, apiBase]);
+
+  const dismissConflict = useCallback(() => { setConflict(null); }, []);
+
+  const pushNow = useCallback(async () => {
+    if (!auth) return;
+    setStatus("syncing");
+    try {
+      // Preflight: check the server's updatedAt to detect a conflict.
+      const meta = await getMeta();
+      const localTs = lastSyncedAtRef.current;
+      if (meta.updatedAt > 0 && localTs !== null && localTs > 0 && meta.updatedAt > localTs) {
+        // Server has newer data than our last sync. Don't blindly overwrite.
+        setServerUpdatedAt(meta.updatedAt);
+        setConflict({ serverUpdatedAt: meta.updatedAt, localUpdatedAt: localTs });
+      // conflict is exposed via return for UI consumption
+        setStatus("idle");
+        return;
+      }
+      const res = await fetch(`${apiBase}/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+        body: JSON.stringify({ state: latestStateRef.current }),
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json.ok) throw new Error(json.message || `HTTP ${res.status}`);
+      const serverTs = Number(json.updatedAt || Date.now());
+      setLastSyncedAt(serverTs);
+      setServerUpdatedAt(serverTs);
+      setStatus("synced");
+    } catch (e: any) {
+      setStatus("error"); setLastError(e?.message || String(e));
+    }
+  }, [auth, apiBase, getMeta]);
 
   const pull = useCallback(async (): Promise<T | null> => {
     if (!auth) return null;
@@ -158,6 +211,8 @@ export function useCloudSync<T extends object>(state: T, isLoaded: boolean) {
     });
     const json = await res.json().catch(() => ({} as any));
     if (!res.ok || !json.ok) throw new Error(json.message || `HTTP ${res.status}`);
+    const serverTs = Number(json.updatedAt || 0);
+    setServerUpdatedAt(serverTs);
     return (json.state ?? null) as T | null;
   }, [auth, apiBase]);
 
@@ -172,5 +227,5 @@ export function useCloudSync<T extends object>(state: T, isLoaded: boolean) {
     return () => { if (timerRef.current) window.clearTimeout(timerRef.current); };
   }, [state, isLoaded, auth, pushNow]);
 
-  return { auth, status, lastError, lastSyncedAt, apiBase, setApiBase, login, register, logout, pushNow, pull };
+  return { auth, status, lastError, lastSyncedAt, apiBase, serverUpdatedAt, setApiBase, login, register, logout, pushNow, forcePush, pull, getMeta, dismissConflict, conflict };
 }

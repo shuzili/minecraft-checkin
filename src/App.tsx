@@ -106,6 +106,10 @@ function App() {
   const cloud = useCloudSync(state, isLoaded);
   useEffect(() => { if (cloud.lastError) console.warn('[cloud]', cloud.lastError); }, [cloud.lastError]);
 
+  useEffect(() => {
+    setConflictBanner(!!cloud.conflict);
+  }, [cloud.conflict]);
+
   // Detect leftover recovery slot and offer to restore.
   useEffect(() => {
     try {
@@ -135,6 +139,28 @@ function App() {
     setRecoveryPrompt(null);
   };
 
+  const handlePullAndApply = async () => {
+    try {
+      const s = await cloud.pull();
+      if (s && typeof s === 'object') {
+        importState(s as any);
+        setConflictBanner(false);
+        cloud.dismissConflict();
+      }
+    } catch (e) {
+      console.warn('[cloud] pull failed', e);
+    }
+  };
+
+  const handleForcePush = async () => {
+    try {
+      await cloud.forcePush();
+      setConflictBanner(false);
+    } catch (e) {
+      console.warn('[cloud] force push failed', e);
+    }
+  };
+
   // Auto-pull from cloud on first successful login. If cloud has data and local is empty, apply it.
   useEffect(() => {
     if (!cloud.auth) return;
@@ -162,6 +188,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cloudOpen, setCloudOpen] = useState(false);
   const [recoveryPrompt, setRecoveryPrompt] = useState<string | null>(null);
+  const [conflictBanner, setConflictBanner] = useState(false);
   const [isBattleLocked, setIsBattleLocked] = useState(false);
 
   useEffect(() => {
@@ -483,6 +510,18 @@ function App() {
       </div>
 
       {/* 涓诲唴瀹?*/}
+      {conflictBanner && (
+        <div className="bg-orange-500/20 border-2 border-orange-500 rounded-lg p-3 mx-4 mt-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <div className="font-pixel text-sm text-white">
+            云端有更新（比你的本地最后同步更新）。强行推送会覆盖云端。
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" onClick={handlePullAndApply} className="minecraft-btn bg-minecraft-emerald hover:bg-minecraft-emerald/90 text-white">拉取并应用</Button>
+            <Button size="sm" onClick={handleForcePush} className="minecraft-btn bg-minecraft-lava hover:bg-minecraft-lava/90 text-white">强制推送（覆盖云端）</Button>
+            <Button size="sm" variant="outline" onClick={() => { setConflictBanner(false); cloud.dismissConflict(); }} className="minecraft-btn border-minecraft-stone text-minecraft-stone">稍后再说</Button>
+          </div>
+        </div>
+      )}
       {recoveryPrompt && (
         <div className="bg-minecraft-gold/20 border-2 border-minecraft-gold rounded-lg p-3 mx-4 mt-3 flex items-center justify-between gap-3">
           <div className="font-pixel text-sm text-white">{recoveryPrompt}</div>

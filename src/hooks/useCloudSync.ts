@@ -28,6 +28,10 @@ function getApiBase(): string {
       if (host === "mc.shuzili.ren" || host === "192.168.1.12") {
         return proto === "https:" ? "https://api.shuzili.ren" : "http://192.168.1.12:8787";
       }
+      // Netlify deployment — still route to the NAS sync API
+      if (host.endsWith(".netlify.app")) {
+        return "https://api.shuzili.ren";
+      }
     } catch {}
   }
   return "/api";

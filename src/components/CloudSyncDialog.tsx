@@ -178,7 +178,7 @@ export function CloudSyncDialog({
 
             <div className="text-xs font-pixel text-minecraft-stone space-y-1">
               <div>上次同步: {formatTime(lastSyncedAt)}</div>
-              <div>API: <span className="text-minecraft-diamond break-all">{apiBase}</span></div>
+              <div className="break-all">API: <span className="text-minecraft-diamond">{apiBase}</span></div>
             </div>
 
             {lastError && (
@@ -205,6 +205,15 @@ export function CloudSyncDialog({
               >
                 <LogOut className="w-4 h-4 mr-1" />
                 退出
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { onSetApiBase(""); window.location.reload(); }}
+                className="minecraft-btn border-minecraft-stone text-minecraft-stone px-2"
+                title="清空自定义 API 地址"
+              >
+                重置
               </Button>
             </div>
           </div>
